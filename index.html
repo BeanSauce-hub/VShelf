@@ -4,7 +4,7 @@
 <title>Matrix</title>
 <style>
   html,body{margin:0;height:100%;background:#000;overflow:hidden}
-  #c{position:fixed;inset:0;display:block}
+  #c{position:fixed;inset:0;display:block;z-index:0;pointer-events:none}
 </style>
 <canvas id="c"></canvas>
 <script>
@@ -12,10 +12,12 @@
   const c = document.getElementById('c');
   const x = c.getContext('2d');
   const CH = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const FS = 16;                  // 字号(px)
+  const FS = 16;                 // 字号(px)
   const COLOR = "rgba(0,255,102,0.3)"; // 半透明绿色
+  const SPEED = 1000;             // 控制统一速度: 每秒下落 1000 像素
 
   let dpr = 1, cols = 0, drops = [];
+  let last = performance.now();  // 上一帧时间戳
 
   function resize(){
     dpr = Math.max(1, window.devicePixelRatio || 1);
@@ -30,18 +32,26 @@
   }
 
   function draw(){
+    const now = performance.now();
+    const delta = (now - last) / 1000;  // 距离上一帧的秒数
+    last = now;
+
     x.fillStyle = "rgba(0,0,0,0.07)";
     x.fillRect(0,0,innerWidth,innerHeight);
 
     x.fillStyle = COLOR;
+    const step = SPEED * delta / FS; // 转换为“格子数”
     for(let i=0;i<cols;i++){
       const ch = CH[Math.floor(Math.random()*CH.length)];
       const xPos = i * FS;
       const yPos = drops[i] * FS;
       x.fillText(ch, xPos, yPos);
 
-      if (yPos > innerHeight && Math.random() > 0.975) drops[i] = 0;
-      else drops[i]++;
+      if (yPos > innerHeight && Math.random() > 0.975) {
+        drops[i] = 0;
+      } else {
+        drops[i] += step;
+      }
     }
     requestAnimationFrame(draw);
   }
@@ -50,3 +60,4 @@
   resize(); draw();
 })();
 </script>
+</html>
