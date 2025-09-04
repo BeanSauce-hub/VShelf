@@ -1,63 +1,241 @@
 <!doctype html>
 <html lang="zh-CN">
-<meta charset="utf-8" />
-<title>Matrix</title>
-<style>
-  html,body{margin:0;height:100%;background:#000;overflow:hidden}
-  #c{position:fixed;inset:0;display:block;z-index:0;pointer-events:none}
-</style>
-<canvas id="c"></canvas>
-<script>
-(() => {
-  const c = document.getElementById('c');
-  const x = c.getContext('2d');
-  const CH = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const FS = 16;                 // 字号(px)
-  const COLOR = "rgba(0,255,102,0.3)"; // 半透明绿色
-  const SPEED = 1000;             // 控制统一速度: 每秒下落 1000 像素
-
-  let dpr = 1, cols = 0, drops = [];
-  let last = performance.now();  // 上一帧时间戳
-
-  function resize(){
-    dpr = Math.max(1, window.devicePixelRatio || 1);
-    const w = innerWidth, h = innerHeight;
-    c.width = Math.floor(w * dpr);
-    c.height = Math.floor(h * dpr);
-    x.setTransform(dpr,0,0,dpr,0,0);
-    x.font = `${FS}px monospace`;
-    x.textBaseline = "top";
-    cols = Math.floor(w / FS);
-    drops = Array(cols).fill(0);
-  }
-
-  function draw(){
-    const now = performance.now();
-    const delta = (now - last) / 1000;  // 距离上一帧的秒数
-    last = now;
-
-    x.fillStyle = "rgba(0,0,0,0.07)";
-    x.fillRect(0,0,innerWidth,innerHeight);
-
-    x.fillStyle = COLOR;
-    const step = SPEED * delta / FS; // 转换为“格子数”
-    for(let i=0;i<cols;i++){
-      const ch = CH[Math.floor(Math.random()*CH.length)];
-      const xPos = i * FS;
-      const yPos = drops[i] * FS;
-      x.fillText(ch, xPos, yPos);
-
-      if (yPos > innerHeight && Math.random() > 0.975) {
-        drops[i] = 0;
-      } else {
-        drops[i] += step;
-      }
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>OPS虚拟货架 · Cyber</title>
+  <style>
+    :root{
+      --neo: #00ff66;           /* 赛博绿（和矩阵雨同色系） */
+      --neo-dim: rgba(0,255,102,.22);
+      --ink: #0a0a0a;
+      --fg:  #e7ffee;
     }
-    requestAnimationFrame(draw);
-  }
+    *{box-sizing:border-box}
+    html,body{margin:0;height:100%;background:transparent;overflow:hidden;}
 
-  addEventListener('resize', resize);
-  resize(); draw();
-})();
+    /* 背景画布（矩阵雨在你已有脚本里） */
+    #c{position:fixed;inset:0;z-index:0;display:block}
+
+    /* 叠加一层微弱的网格与扫描线，增强科技感 */
+    .fx-grid::before,
+    .fx-grid::after{
+      content:"";
+      position:fixed; inset:0; pointer-events:none; z-index:0;
+    }
+    .fx-grid::before{
+      background:
+        linear-gradient(transparent 95%, rgba(0,0,0,.35) 100%) 0 0/100% 2px,
+        linear-gradient(90deg, rgba(0,0,0,.35) 1px, transparent 1px) 0 0/2px 100%;
+      mix-blend-mode:soft-light;
+    }
+    .fx-grid::after{
+      background: linear-gradient(to bottom,
+        rgba(0,255,102,.06), transparent 60%);
+      animation: scan 6s linear infinite;
+      mix-blend-mode:overlay;
+    }
+    @keyframes scan{
+      0%{transform:translateY(-100%)}
+      100%{transform:translateY(100%)}
+    }
+
+    /* 布局：居中 */
+    body{display:grid;place-items:center;position:relative;color:var(--fg);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+
+    /* 霓虹/玻璃 卡片 */
+    .card{
+      position:relative; z-index:1;
+      width:min(92vw, 460px);
+      padding:28px 24px 22px;
+      border-radius:18px;
+      background: linear-gradient(180deg, rgba(12,18,16,.58), rgba(6,10,8,.58));
+      backdrop-filter: blur(10px);
+      border:1px solid var(--neo-dim);
+      box-shadow:
+        0 0 0 1px rgba(0,255,102,.08) inset,
+        0 12px 40px rgba(0,0,0,.55),
+        0 0 24px rgba(0,255,102,.06);
+    }
+
+    .brand{
+      display:flex;align-items:center;gap:10px;margin-bottom:12px;
+      letter-spacing:.12em;text-transform:uppercase;font-weight:700;
+      color:var(--fg)
+    }
+    .dot{width:9px;height:9px;border-radius:50%;background:var(--neo);box-shadow:0 0 14px var(--neo)}
+    h1{margin:0;font-size:18px;opacity:.9}
+
+    label{display:block;font-size:12px;color:#b5ffcf;margin:14px 0 6px;letter-spacing:.06em}
+
+    .row{display:flex;gap:8px}
+    input[type="password"], input[type="text"]{
+      flex:1; padding:12px 12px 12px 14px;
+      border-radius:12px; outline:none; color:var(--fg);
+      background:rgba(3,7,5,.55);
+      border:1px solid rgba(0,255,102,.18);
+      box-shadow: inset 0 0 0 1px rgba(0,255,102,.08);
+      transition:border-color .2s, box-shadow .2s, background .2s;
+    }
+    input::placeholder{color:#8bd6a8}
+    input:focus{
+      border-color:var(--neo);
+      box-shadow:0 0 0 3px rgba(0,255,102,.18), inset 0 0 0 1px rgba(0,255,102,.18);
+      background:rgba(3,7,5,.7);
+    }
+
+    button{
+      padding:12px 14px;border:0;border-radius:12px;cursor:pointer;
+      font-weight:800; letter-spacing:.06em;
+      transition:transform .08s ease, box-shadow .2s ease, background .2s ease;
+      white-space:nowrap;
+    }
+    .btn-ghost{
+      background:rgba(0,0,0,.35); color:#c7ffe0;
+      border:1px solid rgba(0,255,102,.22);
+    }
+    .btn-ghost[aria-pressed="true"]{background:rgba(0,255,102,.12)}
+    .btn-primary{
+     background:linear-gradient(180deg, #00ff66 0%, #00cc55 100%); /* 更亮的纯绿渐变 */
+    color:#000;   /* 黑字对比 */
+    border:1px solid #00ff66;
+    box-shadow:0 0 15px rgba(0,255,102,.6), 0 0 30px rgba(0,255,102,.4);
+    text-shadow:none;
+    }
+
+    button:active{transform:translateY(1px)}
+    .error{ color:#ff6b6b; font-size:12px; min-height:18px; margin-top:10px; text-shadow:0 0 10px rgba(255,0,0,.25) }
+
+    /* 登录后“待开发”页占位（发光标题） */
+    .app{display:none; text-align:center; position:relative; z-index:1}
+    .dev{
+      font-size:46px; letter-spacing:.08em; margin-bottom:8px;
+      color:var(--fg);
+      text-shadow:
+        0 0 6px rgba(255,255,255,.24),
+        0 0 22px rgba(0,255,102,.35),
+        0 0 46px rgba(0,255,102,.18);
+    }
+    .sub{ color:#b5ffcf; opacity:.8 }
+
+    /* 按钮禁用态 */
+    button:disabled{ opacity:.5; cursor:not-allowed; box-shadow:none !important; }
+
+    .btn-primary:hover{
+     filter: brightness(1.05);
+    box-shadow: 0 0 18px rgba(0,255,102,.7), 0 0 36px rgba(0,255,102,.48);
+    }
+    .btn-primary:active{
+    transform: translateY(1px) scale(.99);
+    }
+    .btn-ghost:hover{ background:rgba(0,255,102,.14) }
+
+    
+    /* 顶部极简状态条（可选） */
+    .statusbar{
+      position:fixed; top:12px; left:50%; transform:translateX(-50%);
+      display:flex; gap:10px; z-index:1; font-size:12px; color:#b5ffcf;
+      background:rgba(0,0,0,.35); border:1px solid rgba(0,255,102,.18);
+      padding:6px 10px; border-radius:999px; backdrop-filter:blur(6px)
+    }
+    .pill{display:flex;align-items:center;gap:6px}
+    .led{width:6px;height:6px;border-radius:50%;background:var(--neo);box-shadow:0 0 10px var(--neo)}
+  </style>
+</head>
+<body class="fx-grid">
+
+  <!-- 背景canvas（矩阵雨） -->
+  <canvas id="c"></canvas>
+
+  <!-- 顶部状态条（可删除） -->
+  <div class="statusbar">
+    <span class="pill"><span class="led"></span> MIA OPS</span>
+    <span class="pill">v0.1-alpha</span>
+    <span class="pill">Secure Gate</span>
+  </div>
+
+  <!-- 入口卡片 -->
+  <div class="card" id="gate" role="dialog" aria-labelledby="title">
+    <div class="brand"><span class="dot"></span><h1 id="title">OPS 虚拟货架 · Gate</h1></div>
+
+    <label for="pwd">ACCESS CODE</label>
+    <div class="row">
+      <input id="pwd" type="password" placeholder="请输入口令…" autocomplete="current-password" />
+      <button id="show" class="btn-ghost" type="button" aria-pressed="false">显示</button>
+      <button id="go" class="btn-primary" type="button">进入</button>
+    </div>
+    <div id="err" class="error" role="alert"></div>
+  </div>
+
+  <!-- 登录后占位页 -->
+  <div class="app" id="app">
+    <div class="dev">待开发</div>
+    <div class="sub">（你已通过入口，后续功能这里继续做）</div>
+  </div>
+
+<script>
+  /* ========== Matrix 背景（保持你原逻辑） ========== */
+  (() => {
+    const c = document.getElementById('c');
+    const x = c.getContext('2d');
+    const CH = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const FS = 16, COLOR = "rgba(0,255,102,0.3)";
+    let dpr=1, cols=0, drops=[];
+
+    function resize(){
+      dpr = Math.max(1, window.devicePixelRatio || 1);
+      const w = innerWidth, h = innerHeight;
+      c.width = Math.floor(w * dpr);
+      c.height = Math.floor(h * dpr);
+      x.setTransform(dpr,0,0,dpr,0,0);
+      x.font = `${FS}px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`;
+      x.textBaseline = "top";
+      cols = Math.floor(w / FS);
+      drops = Array(cols).fill(0);
+      x.fillStyle = "#000"; x.fillRect(0,0,w,h);
+    }
+    function draw(){
+      x.fillStyle = "rgba(0,0,0,0.07)";
+      x.fillRect(0,0,innerWidth,innerHeight);
+      x.fillStyle = COLOR;
+      for(let i=0;i<cols;i++){
+        const ch = CH[(Math.random()*CH.length)|0];
+        const xPos = i * FS, yPos = drops[i] * FS;
+        x.fillText(ch, xPos, yPos);
+        if (yPos > innerHeight && Math.random() > 0.975) drops[i]=0; else drops[i]++;
+      }
+      requestAnimationFrame(draw);
+    }
+    addEventListener('resize', resize);
+    resize(); draw();
+  })();
+
+  /* ========== 登录逻辑（不变） ========== */
+  const PASSCODE = "123456";
+  const pwd = document.getElementById('pwd');
+  const go  = document.getElementById('go');
+  const err = document.getElementById('err');
+  const gate = document.getElementById('gate');
+  const app  = document.getElementById('app');
+  const showBtn = document.getElementById('show');
+
+  function enter(){
+    err.textContent="";
+    const v=(pwd.value||"").trim();
+    if(!v){ err.textContent="请先输入密码"; return; }
+    if(v!==PASSCODE){ err.textContent="密码不正确"; pwd.focus(); pwd.select(); return; }
+    gate.style.display="none"; app.style.display="block";
+  }
+  showBtn.addEventListener('click', ()=>{
+    const showing = pwd.type==="text";
+    pwd.type = showing? "password":"text";
+    showBtn.textContent = showing? "显示":"隐藏";
+    showBtn.setAttribute('aria-pressed', String(!showing));
+    pwd.focus();
+  });
+  go.addEventListener('click', enter);
+  pwd.addEventListener('keydown', e=>{ if(e.key==="Enter") enter(); });
+  window.addEventListener('DOMContentLoaded', ()=> pwd.focus());
 </script>
+</body>
 </html>
