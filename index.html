@@ -97,14 +97,14 @@
 
     /* ===== 应用区（登录后） ===== */
     .app{
-      display:none;
+      display:none;                 /* 初始隐藏，登录后显示 */
       position:relative; z-index:1;
       width:100%;
-      min-height:100vh;
-      padding:0;
-      overflow:clip;
-      display:grid;
+      min-height:100svh;
+      padding:24px;
+      overflow:auto;
       place-items:center;
+      justify-items:center;
     }
     @supports (height: 100dvh){
       .app{ min-height:100dvh; }
@@ -114,36 +114,34 @@
       width:min(96vw,1100px);
       padding:22px 20px;
       margin:auto;
-      max-height:clamp(520px, 92dvh, 980px);
-      display:grid;
-      grid-template-rows:auto 1fr auto;
-      gap:12px;
     }
 
     .grid{
       display:grid;
-      grid-template-rows: auto 1fr;
+      grid-template-columns:1fr;
       gap:14px;
-      min-height:0;
     }
 
+    /* 工具条 */
     .toolbar{
       display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:center;
       margin-bottom:6px
     }
     .toolbar input[type="text"], .toolbar input[type="date"]{
       padding:10px 12px; border-radius:10px; border:1px solid rgba(0,255,102,.18);
-      background:rgba(3,7,5,.45); color:var(--fg); outline:none; min-width:160px;
+      background:rgba(3,7,5,.45); color:var(--fg); outline:none
     }
 
+    /* 预览窗 */
     .preview{
-      min-height:220px;
-      height:auto;
-      overflow:auto;
+      height:clamp(280px, 58vh, 72dvh);
+      min-height:260px;
       background:rgba(255,255,255,.06);
       border:1px solid rgba(0,255,102,.18);
-      border-radius:12px; padding:10px;
-      min-block-size:0;
+      border-radius:12px; overflow:auto; padding:10px
+    }
+    @supports (height: 1dvh){
+      .preview{ height:clamp(280px, 58dvh, 72dvh); }
     }
 
     table{width:100%; border-collapse:collapse; font-size:13px; color:#eafaea}
@@ -157,6 +155,7 @@
     .ops input[type="text"]{min-width:260px; flex:1}
     .status{font-size:12px; color:#b5ffcf; text-align:center; min-height:16px}
 
+    /* 排序指示 */
     th .sort{opacity:.7; font-size:12px; margin-left:2px}
     th.active{color:#b5ffcf}
 
@@ -219,18 +218,17 @@
           </table>
         </div>
 
-      </div>
+        <!-- 操作区 -->
+        <div class="ops">
+          <input id="inp" type="text"
+                 placeholder="编号可用逗号/空格/换行分隔"
+                 spellcheck="false" autocapitalize="off" autocomplete="off" autofocus />
+          <button id="btnAdd" class="btn-primary" type="button">上架</button>
+          <button id="btnDel" class="btn-danger" type="button">下架</button>
+        </div>
+        <div class="status" id="status"></div>
 
-      <!-- 操作区 -->
-      <div class="ops">
-        <input id="inp" type="text"
-               placeholder="编号可用逗号/空格/换行分隔"
-               spellcheck="false" autocapitalize="off" autocomplete="off" autofocus />
-        <button id="btnAdd" class="btn-primary" type="button">上架</button>
-        <button id="btnDel" class="btn-danger" type="button">下架</button>
       </div>
-      <div class="status" id="status"></div>
-
     </div>
   </div>
 
@@ -324,17 +322,6 @@ async function enter(){
   document.body.style.overflow = "hidden";
   document.getElementById('modeText').textContent = 'Virtual Shelf';
   alignBadge();
-
-  // 登录后首次拉取云端数据并渲染
-  try{
-    setStatus('正在连接共享表格…');
-    await fetchAllFromServer();
-    render();
-    setStatus(`已加载 ${CACHE.length} 条`);
-  }catch(e){
-    setStatus('拉取失败：' + e.message);
-    render();
-  }
 }
 
 showBtn.addEventListener('click', ()=>{
@@ -348,13 +335,10 @@ go.addEventListener('click', ()=>enter());
 pwd.addEventListener('keydown', e=>{ if(e.key==="Enter") enter(); });
 window.addEventListener('DOMContentLoaded', ()=> pwd.focus());
 
-/* ========== 云端 API 配置（Google Apps Script Web App） ========== */
-/* 如果你在 Apps Script 中更换了 token，请同步修改下面的 API_TOKEN */
-const API = 'https://script.google.com/macros/s/AKfycbzqqLQoNaKtMNvBHXiEy3fTSUVedI1DSby3Q_JekCoepCz7FOJhBap4fkHQvvzwwvkk/exec';
-const API_TOKEN = 'PZDynamics';  // 必须与后端脚本中的 API_TOKEN 一致
+/* ========== 数据存储 ========== */
+const KEY = 'HX_DATA_V1';
+const ALLOW_DUPLICATES = true;  // 当前允许重复
 
-/* ====== 数据工具 & 状态 ====== */
-const ALLOW_DUPLICATES = true;  // 云端当前允许重复
 const $ = s => document.querySelector(s);
 const setStatus = t => { $('#status').textContent = t || '' };
 // 允许大写英文与数字，且自动转大写
@@ -363,19 +347,21 @@ const nowStr = () => {
   const d=new Date(), p=n=>String(n).padStart(2,'0');
   return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
 };
+const load = () => { try { return JSON.parse(localStorage.getItem(KEY) || '[]') } catch { return [] } };
+const save = a => localStorage.setItem(KEY, JSON.stringify(a));
 
 /* ====== 搜索/筛选/排序状态 ====== */
 const state = {
-  sortKey: '时间',
-  sortDir: 'desc',
-  q: '',
-  d1: null,
-  d2: null
+  sortKey: '时间',       // '时间' | '编号'
+  sortDir: 'desc',       // 'asc' | 'desc'
+  q: '',                 // 搜索关键字
+  d1: null,              // 起始日期（Date 或 null）
+  d2: null               // 结束日期（Date 或 null，含当天）
 };
 
 const parseTime = (s) => {
   if(!s) return null;
-  const t = s.replace(' ', 'T');
+  const t = s.replace(' ', 'T');          // 近似 ISO
   const d = new Date(t);
   return isNaN(d) ? null : d;
 };
@@ -384,7 +370,7 @@ const matchKeywords = (no, q) => {
   if(!q) return true;
   const tokens = q.toUpperCase().split(/[,\s]+/).filter(Boolean);
   const S = String(no || '').toUpperCase();
-  return tokens.every(tok => S.includes(tok));
+  return tokens.every(tok => S.includes(tok));  // 所有关键字需命中
 };
 
 const inDateRange = (timeStr, d1, d2) => {
@@ -399,46 +385,12 @@ const inDateRange = (timeStr, d1, d2) => {
   return true;
 };
 
-/* ========== （最小侵入改造）把本地存储切到云端 ========== */
-let CACHE = []; // 仅作前端渲染缓存，以服务器数据为准
-
-const load = () => CACHE.slice();   // render() 仍调用 load()
-const save = (_a) => {};            // 不再写 localStorage
-
-async function fetchAllFromServer(){
-  const url = new URL(API);
-  url.searchParams.set('op', 'list');
-  url.searchParams.set('token', API_TOKEN);
-  // 如果想让服务端做筛选，可放开下面三行，同时在筛选变化时调用 fetchAllFromServer 再 render
-  // if (state.q)  url.searchParams.set('q', state.q);
-  // if (state.d1) url.searchParams.set('d1', state.d1.toISOString().slice(0,10));
-  // if (state.d2) url.searchParams.set('d2', state.d2.toISOString().slice(0,10));
-
-  const res = await fetch(url.toString(), { method: 'GET' });
-  const json = await res.json();
-  if(!json.ok) throw new Error(json.error || 'list failed');
-  CACHE = json.data || [];
-}
-
-async function addToServer(arr){
-  const body = new URLSearchParams({ op:'add', token: API_TOKEN, items: JSON.stringify(arr) });
-  const res = await fetch(API, { method:'POST', body });
-  const json = await res.json();
-  if(!json.ok) throw new Error(json.error || 'add failed');
-}
-
-async function delFromServer(arr){
-  const body = new URLSearchParams({ op:'del', token: API_TOKEN, ids: JSON.stringify(arr) });
-  const res = await fetch(API, { method:'POST', body });
-  const json = await res.json();
-  if(!json.ok) throw new Error(json.error || 'del failed');
-}
-
-/* ====== 渲染（保持你的原逻辑） ====== */
 function applyFilterSort(data){
+  // 1) 过滤
   const filtered = data.filter(r =>
     matchKeywords(r.编号, state.q) && inDateRange(r.时间, state.d1, state.d2)
   );
+  // 2) 排序
   const key = state.sortKey;
   const dir = state.sortDir === 'asc' ? 1 : -1;
   filtered.sort((a,b)=>{
@@ -455,6 +407,38 @@ function applyFilterSort(data){
   return filtered;
 }
 
+/* ====== 扫描枪友好（方案 C：识别输入速度） ====== */
+const inp = document.getElementById('inp');
+let lastKeyTime = 0;
+const SCAN_THRESHOLD = 120; // ms，<120ms 判定为扫描枪
+
+// 页面加载后保持焦点在输入框，便于连扫
+window.addEventListener('DOMContentLoaded', () => {
+  if (inp) inp.focus();
+  setInterval(() => {
+    if (document.activeElement !== inp) inp.focus();
+  }, 2000);
+});
+
+// 记录非回车按键时间
+inp.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter') lastKeyTime = Date.now();
+});
+
+// 回车：根据速度判定是否自动“上架”
+inp.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const delta = Date.now() - lastKeyTime;
+    if (delta < SCAN_THRESHOLD) {
+      e.preventDefault();
+      document.getElementById('btnAdd').click();
+    } else {
+      // 人工输入：不自动提交（保留默认行为，或按需 e.preventDefault();）
+    }
+  }
+});
+
+/* ====== 渲染 ====== */
 function render(){
   const data = load();
   const rows = applyFilterSort(data);
@@ -474,41 +458,15 @@ function render(){
     tb.appendChild(frag);
     setStatus(`共 ${rows.length} 条${(rows.length !== data.length) ? `（已筛选）` : ''}`);
   }
+  // 更新表头箭头
   document.querySelectorAll('th[data-key]').forEach(th=>{
     th.classList.toggle('active', th.dataset.key===state.sortKey);
     const sp = th.querySelector('.sort');
     sp.textContent = (th.dataset.key===state.sortKey) ? (state.sortDir==='asc'?'▲':'▼') : '';
   });
-  alignBadge();
 }
 
-/* ====== 扫描枪友好（方案 C：识别输入速度） ====== */
-const inp = document.getElementById('inp');
-let lastKeyTime = 0;
-const SCAN_THRESHOLD = 120; // ms，<120ms 判定为扫描枪
-
-window.addEventListener('DOMContentLoaded', () => {
-  if (inp) inp.focus();
-  setInterval(() => {
-    if (document.activeElement !== inp) inp.focus();
-  }, 2000);
-});
-
-inp.addEventListener('keydown', (e) => {
-  if (e.key !== 'Enter') lastKeyTime = Date.now();
-});
-
-inp.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') {
-    const delta = Date.now() - lastKeyTime;
-    if (delta < SCAN_THRESHOLD) {
-      e.preventDefault();
-      document.getElementById('btnAdd').click();
-    }
-  }
-});
-
-/* ====== 绑定工具条与表头事件（保持你的原逻辑） ====== */
+/* ====== 绑定工具条与表头事件 ====== */
 const qInput = document.getElementById('q');
 const d1Input = document.getElementById('d1');
 const d2Input = document.getElementById('d2');
@@ -519,7 +477,7 @@ qInput.addEventListener('input', ()=>{
   clearTimeout(qTimer);
   qTimer = setTimeout(()=>{
     state.q = qInput.value.trim();
-    render(); // 若想用服务端筛选，这里改为 await fetchAllFromServer(); render();
+    render();
   }, 200);
 });
 d1Input.addEventListener('change', ()=>{
@@ -544,54 +502,54 @@ document.querySelectorAll('th[data-key]').forEach(th=>{
       state.sortDir = (state.sortDir === 'asc') ? 'desc' : 'asc';
     }else{
       state.sortKey = key;
-      state.sortDir = (key === '时间') ? 'desc' : 'asc';
+      state.sortDir = (key === '时间') ? 'desc' : 'asc'; // 默认时间倒序、编号正序
     }
     render();
   });
 });
 
-/* ====== 上/下架操作：改为云端写入 + 重新拉取 ====== */
-document.getElementById('btnAdd').addEventListener('click', async ()=>{
+/* ====== 上/下架操作 ====== */
+document.getElementById('btnAdd').addEventListener('click', ()=>{
   const raw = (inp.value||'').trim();
   if(!raw) return;
   if(raw.toLowerCase()==='cleanall'){
-    setStatus('云端不支持 cleanall（如需此功能可在后端增加安全清空接口）');
-    inp.value='';
-    return;
+    save([]); inp.value=''; render(); setStatus('表格已清空'); inp.focus(); return;
   }
   const arr = ids(raw);
   if(arr.length===0){ setStatus('未识别到任何编号'); inp.focus(); return; }
-  try{
-    setStatus('正在上架…');
-    await addToServer(arr);
-    inp.value='';
-    await fetchAllFromServer();
-    render();
-    setStatus(`已新增 ${arr.length} 条，现有 ${CACHE.length} 条`);
-  }catch(e){
-    setStatus('上架失败：' + e.message);
+  const t = nowStr();
+  let data = load();
+  if(ALLOW_DUPLICATES){
+    for(const n of arr) data.push({ 编号:String(n), 时间:t });
+  }else{
+    const map = new Map(data.map(r => [String(r.编号), r]));
+    for(const n of arr) map.set(String(n), { 编号:String(n), 时间:t });
+    data = [...map.values()];
   }
-  inp.focus();
+  save(data);
+  inp.value='';
+  render(); setStatus(`已新增 ${arr.length} 条，现有 ${data.length} 条`);
+  inp.focus(); // 便于连续扫码
 });
 
-document.getElementById('btnDel').addEventListener('click', async ()=>{
+document.getElementById('btnDel').addEventListener('click', ()=>{
   const raw = (inp.value||'').trim();
   if(!raw) return;
   const arr = ids(raw);
   if(arr.length===0){ setStatus('未识别到需要下架的编号'); inp.focus(); return; }
-  try{
-    setStatus('正在下架…');
-    await delFromServer(arr);
-    inp.value='';
-    await fetchAllFromServer();
-    render();
-    setStatus(`已下架，现有 ${CACHE.length} 条`);
-  }catch(e){
-    setStatus('下架失败：' + e.message);
-  }
-  inp.focus();
+  let data = load();
+  const before = data.length;
+  const set = new Set(arr.map(String));
+  data = data.filter(r => !set.has(String(r.编号)));
+  save(data);
+  inp.value='';
+  render(); setStatus(`已下架 ${before - data.length} 条，现有 ${data.length} 条`);
+  inp.focus(); // 便于连续扫码
 });
 
+/* 初始化 */
+if(localStorage.getItem(KEY)===null){ save([]); }
+render();
 </script>
 </body>
 </html>
