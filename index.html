@@ -3,25 +3,25 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>OPS虚拟货架 · Cyber</title>
+  <title>OPS虚拟库位</title>
   <style>
     :root{
-      --neo: #00ff66;           /* 赛博绿（和矩阵雨同色系） */
-      --neo-dim: rgba(0,255,102,.22);
-      --ink: #0a0a0a;
-      --fg:  #e7ffee;
+      --neo:#00ff66; --neo-dim:rgba(0,255,102,.22);
+      --ink:#0a0a0a; --fg:#e7ffee;
     }
     *{box-sizing:border-box}
     html,body{margin:0;height:100%;background:transparent;overflow:hidden;}
+    body{
+      display:grid;place-items:center;position:relative;color:var(--fg);
+      font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace
+    }
 
-    /* 背景画布（矩阵雨在你已有脚本里） */
+    /* 背景画布（矩阵雨在脚本里） */
     #c{position:fixed;inset:0;z-index:0;display:block}
 
-    /* 叠加一层微弱的网格与扫描线，增强科技感 */
-    .fx-grid::before,
-    .fx-grid::after{
-      content:"";
-      position:fixed; inset:0; pointer-events:none; z-index:0;
+    /* 科技感网格与扫描线 */
+    .fx-grid::before,.fx-grid::after{
+      content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
     }
     .fx-grid::before{
       background:
@@ -30,116 +30,138 @@
       mix-blend-mode:soft-light;
     }
     .fx-grid::after{
-      background: linear-gradient(to bottom,
-        rgba(0,255,102,.06), transparent 60%);
-      animation: scan 6s linear infinite;
-      mix-blend-mode:overlay;
+      background:linear-gradient(to bottom, rgba(0,255,102,.06), transparent 60%);
+      animation:scan 6s linear infinite; mix-blend-mode:overlay;
     }
-    @keyframes scan{
-      0%{transform:translateY(-100%)}
-      100%{transform:translateY(100%)}
-    }
+    @keyframes scan{0%{transform:translateY(-100%)}100%{transform:translateY(100%)}}
 
-    /* 布局：居中 */
-    body{display:grid;place-items:center;position:relative;color:var(--fg);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-
-    /* 霓虹/玻璃 卡片 */
-    .card{
-      position:relative; z-index:1;
-      width:min(92vw, 460px);
-      padding:28px 24px 22px;
-      border-radius:18px;
-      background: linear-gradient(180deg, rgba(12,18,16,.58), rgba(6,10,8,.58));
-      backdrop-filter: blur(10px);
+    /* 玻璃卡片（Gate & Panel） */
+    .card,.panel{
+      position:relative; z-index:1; border-radius:18px;
+      background:linear-gradient(180deg, rgba(12,18,16,.58), rgba(6,10,8,.58));
+      backdrop-filter:blur(10px);
       border:1px solid var(--neo-dim);
-      box-shadow:
-        0 0 0 1px rgba(0,255,102,.08) inset,
-        0 12px 40px rgba(0,0,0,.55),
-        0 0 24px rgba(0,255,102,.06);
+      box-shadow:0 0 0 1px rgba(0,255,102,.08) inset,
+                 0 12px 40px rgba(0,0,0,.55),
+                 0 0 24px rgba(0,255,102,.06);
     }
+    .card{width:min(92vw, 460px); padding:28px 24px 22px;}
 
-    .brand{
-      display:flex;align-items:center;gap:10px;margin-bottom:12px;
-      letter-spacing:.12em;text-transform:uppercase;font-weight:700;
-      color:var(--fg)
-    }
+    .brand{display:flex;align-items:center;gap:10px;margin-bottom:12px;
+           letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--fg)}
     .dot{width:9px;height:9px;border-radius:50%;background:var(--neo);box-shadow:0 0 14px var(--neo)}
-    h1{margin:0;font-size:18px;opacity:.9}
+    h1,h2{margin:0}
+    h1{font-size:18px;opacity:.9}
+    h2{font-size:clamp(22px, 3.5vw, 28px); letter-spacing:.06em; text-align:center; margin-bottom:10px}
 
     label{display:block;font-size:12px;color:#b5ffcf;margin:14px 0 6px;letter-spacing:.06em}
-
     .row{display:flex;gap:8px}
     input[type="password"], input[type="text"]{
-      flex:1; padding:12px 12px 12px 14px;
-      border-radius:12px; outline:none; color:var(--fg);
-      background:rgba(3,7,5,.55);
-      border:1px solid rgba(0,255,102,.18);
-      box-shadow: inset 0 0 0 1px rgba(0,255,102,.08);
+      flex:1; padding:12px 12px 12px 14px; border-radius:12px; outline:none; color:var(--fg);
+      background:rgba(3,7,5,.55); border:1px solid rgba(0,255,102,.18);
+      box-shadow:inset 0 0 0 1px rgba(0,255,102,.08);
       transition:border-color .2s, box-shadow .2s, background .2s;
     }
     input::placeholder{color:#8bd6a8}
-    input:focus{
-      border-color:var(--neo);
-      box-shadow:0 0 0 3px rgba(0,255,102,.18), inset 0 0 0 1px rgba(0,255,102,.18);
-      background:rgba(3,7,5,.7);
-    }
+    input:focus{border-color:var(--neo); box-shadow:0 0 0 3px rgba(0,255,102,.18), inset 0 0 0 1px rgba(0,255,102,.18); background:rgba(3,7,5,.7)}
 
     button{
       padding:12px 14px;border:0;border-radius:12px;cursor:pointer;
       font-weight:800; letter-spacing:.06em;
       transition:transform .08s ease, box-shadow .2s ease, background .2s ease;
-      white-space:nowrap;
+      white-space:nowrap; color:#000;
     }
-    .btn-ghost{
-      background:rgba(0,0,0,.35); color:#c7ffe0;
-      border:1px solid rgba(0,255,102,.22);
-    }
+    .btn-ghost{background:rgba(0,0,0,.35); color:#c7ffe0; border:1px solid rgba(0,255,102,.22)}
     .btn-ghost[aria-pressed="true"]{background:rgba(0,255,102,.12)}
     .btn-primary{
-     background:linear-gradient(180deg, #00ff66 0%, #00cc55 100%); /* 更亮的纯绿渐变 */
-    color:#000;   /* 黑字对比 */
-    border:1px solid #00ff66;
-    box-shadow:0 0 15px rgba(0,255,102,.6), 0 0 30px rgba(0,255,102,.4);
-    text-shadow:none;
+      background:linear-gradient(180deg,#00ff66 0%, #00cc55 100%); border:1px solid #00ff66;
+      box-shadow:0 0 15px rgba(0,255,102,.6), 0 0 30px rgba(0,255,102,.4);
     }
-
-    button:active{transform:translateY(1px)}
-    .error{ color:#ff6b6b; font-size:12px; min-height:18px; margin-top:10px; text-shadow:0 0 10px rgba(255,0,0,.25) }
-
-    /* 登录后“待开发”页占位（发光标题） */
-    .app{display:none; text-align:center; position:relative; z-index:1}
-    .dev{
-      font-size:46px; letter-spacing:.08em; margin-bottom:8px;
-      color:var(--fg);
-      text-shadow:
-        0 0 6px rgba(255,255,255,.24),
-        0 0 22px rgba(0,255,102,.35),
-        0 0 46px rgba(0,255,102,.18);
+    .btn-danger{
+      background:linear-gradient(180deg,#ff6b6b,#ff3b3b); border:1px solid rgba(255,90,90,.9);
+      color:#000; box-shadow:0 0 15px rgba(255,90,90,.35), 0 0 30px rgba(255,90,90,.2);
     }
-    .sub{ color:#b5ffcf; opacity:.8 }
+    button:hover{filter:brightness(1.05)}
+    button:active{transform:translateY(1px) scale(.99)}
+    button:disabled{opacity:.5;cursor:not-allowed;box-shadow:none!important}
 
-    /* 按钮禁用态 */
-    button:disabled{ opacity:.5; cursor:not-allowed; box-shadow:none !important; }
-
-    .btn-primary:hover{
-     filter: brightness(1.05);
-    box-shadow: 0 0 18px rgba(0,255,102,.7), 0 0 36px rgba(0,255,102,.48);
-    }
-    .btn-primary:active{
-    transform: translateY(1px) scale(.99);
-    }
-    .btn-ghost:hover{ background:rgba(0,255,102,.14) }
-
-    
-    /* 顶部极简状态条（可选） */
+    /* 顶部状态条（left/transform 交给 JS 动态设置） */
     .statusbar{
-      position:fixed; top:12px; left:50%; transform:translateX(-50%);
+      position:fixed; top:12px;
       display:flex; gap:10px; z-index:1; font-size:12px; color:#b5ffcf;
       background:rgba(0,0,0,.35); border:1px solid rgba(0,255,102,.18);
       padding:6px 10px; border-radius:999px; backdrop-filter:blur(6px)
     }
     .pill{display:flex;align-items:center;gap:6px}
     .led{width:6px;height:6px;border-radius:50%;background:var(--neo);box-shadow:0 0 10px var(--neo)}
+
+    /* ===== 应用区（登录后） ===== */
+    .app{
+      display:none;                 /* 初始隐藏，登录后显示 */
+      position:relative; z-index:1;
+      width:100%;
+      min-height:100svh;
+      padding:24px;
+      overflow:auto;
+      place-items:center;
+      justify-items:center;
+    }
+    @supports (height: 100dvh){
+      .app{ min-height:100dvh; }
+    }
+
+    .panel{
+      width:min(96vw,1100px);
+      padding:22px 20px;
+      margin:auto;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:14px;
+    }
+
+    /* 工具条 */
+    .toolbar{
+      display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:center;
+      margin-bottom:6px
+    }
+    .toolbar input[type="text"], .toolbar input[type="date"]{
+      padding:10px 12px; border-radius:10px; border:1px solid rgba(0,255,102,.18);
+      background:rgba(3,7,5,.45); color:var(--fg); outline:none
+    }
+
+    /* 预览窗 */
+    .preview{
+      height:clamp(280px, 58vh, 72dvh);
+      min-height:260px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(0,255,102,.18);
+      border-radius:12px; overflow:auto; padding:10px
+    }
+    @supports (height: 1dvh){
+      .preview{ height:clamp(280px, 58dvh, 72dvh); }
+    }
+
+    table{width:100%; border-collapse:collapse; font-size:13px; color:#eafaea}
+    thead th{position:sticky; top:0; background:rgba(0,0,0,.35); border-bottom:1px solid rgba(0,255,102,.18); text-align:center; padding:8px}
+    tbody td{padding:8px; border-bottom:1px solid rgba(255,255,255,.06); white-space:nowrap; text-align:center; color:#e7ffee}
+    .empty{color:#95c7ab; padding:18px 8px; text-align:center}
+
+    .ops{
+      display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:center
+    }
+    .ops input[type="text"]{min-width:260px; flex:1}
+    .status{font-size:12px; color:#b5ffcf; text-align:center; min-height:16px}
+
+    /* 排序指示 */
+    th .sort{opacity:.7; font-size:12px; margin-left:2px}
+    th.active{color:#b5ffcf}
+
+    @media (min-width: 1200px){
+      .preview{ height:clamp(320px, 60vh, 70dvh); }
+    }
   </style>
 </head>
 <body class="fx-grid">
@@ -147,14 +169,14 @@
   <!-- 背景canvas（矩阵雨） -->
   <canvas id="c"></canvas>
 
-  <!-- 顶部状态条（可删除） -->
-  <div class="statusbar">
+  <!-- 顶部状态条（JS 会让它对齐当前中心容器） -->
+  <div class="statusbar" id="statusbar">
     <span class="pill"><span class="led"></span> MIA OPS</span>
-    <span class="pill">v0.1-alpha</span>
-    <span class="pill">Secure Gate</span>
+    <span class="pill">v0.1</span>
+    <span class="pill"><span id="modeText">Secure Gate</span></span>
   </div>
 
-  <!-- 入口卡片 -->
+  <!-- 登录卡片（Gate） -->
   <div class="card" id="gate" role="dialog" aria-labelledby="title">
     <div class="brand"><span class="dot"></span><h1 id="title">OPS 虚拟货架 · Gate</h1></div>
 
@@ -164,78 +186,370 @@
       <button id="show" class="btn-ghost" type="button" aria-pressed="false">显示</button>
       <button id="go" class="btn-primary" type="button">进入</button>
     </div>
-    <div id="err" class="error" role="alert"></div>
+    <div id="err" class="error" role="alert" style="color:#ff6b6b; font-size:12px; min-height:18px; margin-top:10px; text-shadow:0 0 10px rgba(255,0,0,.25)"></div>
   </div>
 
-  <!-- 登录后占位页 -->
+  <!-- 应用区：上/下架 + 工具条 + 预览 -->
   <div class="app" id="app">
-    <div class="dev">待开发</div>
-    <div class="sub">（你已通过入口，后续功能这里继续做）</div>
+    <div class="panel">
+      <div class="grid">
+
+        <!-- 工具条：搜索/筛选 -->
+        <div class="toolbar">
+          <input id="q" type="text" placeholder="搜索编号（空格/逗号分隔多关键字）" />
+          <input id="d1" type="date" aria-label="开始日期">
+          <span>至</span>
+          <input id="d2" type="date" aria-label="结束日期">
+          <button id="clear" class="btn-ghost" type="button">清空筛选</button>
+        </div>
+
+        <!-- 预览窗（可排序表头） -->
+        <div class="preview">
+          <table>
+            <thead>
+              <tr>
+                <th data-key="编号"  style="width:42%; cursor:pointer">运单号 <span class="sort"></span></th>
+                <th data-key="时间"  style="cursor:pointer">操作时间 <span class="sort"></span></th>
+              </tr>
+            </thead>
+            <tbody id="tbody">
+              <tr><td class="empty" colspan="2">暂无数据</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 操作区 -->
+        <div class="ops">
+          <input id="inp" type="text"
+                 placeholder="编号可用逗号/空格/换行分隔"
+                 spellcheck="false" autocapitalize="off" autocomplete="off" autofocus />
+          <button id="btnAdd" class="btn-primary" type="button">上架</button>
+          <button id="btnDel" class="btn-danger" type="button">下架</button>
+        </div>
+        <div class="status" id="status"></div>
+
+      </div>
+    </div>
   </div>
 
 <script>
-  /* ========== Matrix 背景（保持你原逻辑） ========== */
-  (() => {
-    const c = document.getElementById('c');
-    const x = c.getContext('2d');
-    const CH = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    const FS = 16, COLOR = "rgba(0,255,102,0.3)";
-    let dpr=1, cols=0, drops=[];
-
-    function resize(){
-      dpr = Math.max(1, window.devicePixelRatio || 1);
-      const w = innerWidth, h = innerHeight;
-      c.width = Math.floor(w * dpr);
-      c.height = Math.floor(h * dpr);
-      x.setTransform(dpr,0,0,dpr,0,0);
-      x.font = `${FS}px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`;
-      x.textBaseline = "top";
-      cols = Math.floor(w / FS);
-      drops = Array(cols).fill(0);
-      x.fillStyle = "#000"; x.fillRect(0,0,w,h);
-    }
-    function draw(){
-      x.fillStyle = "rgba(0,0,0,0.07)";
-      x.fillRect(0,0,innerWidth,innerHeight);
-      x.fillStyle = COLOR;
-      for(let i=0;i<cols;i++){
-        const ch = CH[(Math.random()*CH.length)|0];
-        const xPos = i * FS, yPos = drops[i] * FS;
-        x.fillText(ch, xPos, yPos);
-        if (yPos > innerHeight && Math.random() > 0.975) drops[i]=0; else drops[i]++;
-      }
-      requestAnimationFrame(draw);
-    }
-    addEventListener('resize', resize);
-    resize(); draw();
-  })();
-
-  /* ========== 登录逻辑（不变） ========== */
-  const PASSCODE = "123456";
-  const pwd = document.getElementById('pwd');
-  const go  = document.getElementById('go');
-  const err = document.getElementById('err');
-  const gate = document.getElementById('gate');
-  const app  = document.getElementById('app');
-  const showBtn = document.getElementById('show');
-
-  function enter(){
-    err.textContent="";
-    const v=(pwd.value||"").trim();
-    if(!v){ err.textContent="请先输入密码"; return; }
-    if(v!==PASSCODE){ err.textContent="密码不正确"; pwd.focus(); pwd.select(); return; }
-    gate.style.display="none"; app.style.display="block";
+/* ========== Matrix 背景 ========== */
+(()=> {
+  const c = document.getElementById('c');
+  const x = c.getContext('2d');
+  const CH = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const FS = 16, COLOR = "rgba(0,255,102,0.3)";
+  let dpr=1, cols=0, drops=[];
+  function resize(){
+    dpr = Math.max(1, window.devicePixelRatio || 1);
+    const w = innerWidth, h = innerHeight;
+    c.width = Math.floor(w * dpr);
+    c.height = Math.floor(h * dpr);
+    x.setTransform(dpr,0,0,dpr,0,0);
+    x.font = `${FS}px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`;
+    x.textBaseline = "top";
+    cols = Math.floor(w / FS);
+    drops = Array(cols).fill(0);
+    x.fillStyle = "#000"; x.fillRect(0,0,w,h);
   }
-  showBtn.addEventListener('click', ()=>{
-    const showing = pwd.type==="text";
-    pwd.type = showing? "password":"text";
-    showBtn.textContent = showing? "显示":"隐藏";
-    showBtn.setAttribute('aria-pressed', String(!showing));
-    pwd.focus();
+  function draw(){
+    x.fillStyle = "rgba(0,0,0,0.07)";
+    x.fillRect(0,0,innerWidth,innerHeight);
+    x.fillStyle = COLOR;
+    for(let i=0;i<cols;i++){
+      const ch = CH[(Math.random()*CH.length)|0];
+      const xPos = i * FS, yPos = drops[i] * FS;
+      x.fillText(ch, xPos, yPos);
+      if (yPos > innerHeight && Math.random() > 0.975) drops[i]=0; else drops[i]++;
+    }
+    requestAnimationFrame(draw);
+  }
+  addEventListener('resize', resize);
+  resize(); draw();
+})();
+
+/* ========== 对齐徽章到当前中心容器 ========== */
+const statusbar = document.getElementById('statusbar');
+const gate = document.getElementById('gate');
+const app  = document.getElementById('app');
+
+function alignBadge(){
+  const target = (getComputedStyle(gate).display !== 'none')
+    ? gate
+    : document.querySelector('.panel');
+  const r = target.getBoundingClientRect();
+  statusbar.style.left = (r.left + r.width / 2) + 'px';
+  statusbar.style.transform = 'translateX(-50%)';
+}
+window.addEventListener('resize', alignBadge);
+window.addEventListener('DOMContentLoaded', alignBadge);
+
+/* ========== 登录逻辑（SHA-256 哈希比对） ========== */
+/* ptothez → SHA-256 → c4ea541037f800a6c3ee534e5e29f8b833eaf7a11e6d4281510026dea5abcb30 */
+const h = "c4ea541037f800a6c3ee534e5e29f8b833eaf7a11e6d4281510026dea5abcb30";
+
+const pwd = document.getElementById('pwd');
+const go  = document.getElementById('go');
+const err = document.getElementById('err');
+const showBtn = document.getElementById('show');
+
+// 计算 SHA-256
+async function sha256(msg){
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(msg));
+  return [...new Uint8Array(buf)].map(x=>x.toString(16).padStart(2,"0")).join("");
+}
+
+async function enter(){
+  err.textContent="";
+  const v=(pwd.value||"").trim();
+  if(!v){ err.textContent="请先输入密码"; return; }
+
+  try{
+    const hash = await sha256(v);
+    if(hash !== h){
+      err.textContent="密码不正确";
+      pwd.focus(); pwd.select();
+      return;
+    }
+  }catch(e){
+    err.textContent = "当前环境不支持安全校验（WebCrypto）。请用 https/本地服务器打开。";
+    return;
+  }
+
+  // 登录成功
+  gate.style.display="none";
+  app.style.display="grid";
+  document.body.style.overflow = "hidden";
+  document.getElementById('modeText').textContent = 'Virtual Shelf';
+  alignBadge();
+}
+
+showBtn.addEventListener('click', ()=>{
+  const showing = pwd.type==="text";
+  pwd.type = showing? "password":"text";
+  showBtn.textContent = showing? "显示":"隐藏";
+  showBtn.setAttribute('aria-pressed', String(!showing));
+  pwd.focus();
+});
+go.addEventListener('click', ()=>enter());
+pwd.addEventListener('keydown', e=>{ if(e.key==="Enter") enter(); });
+window.addEventListener('DOMContentLoaded', ()=> pwd.focus());
+
+/* ========== 数据存储 ========== */
+const KEY = 'HX_DATA_V1';
+const ALLOW_DUPLICATES = true;  // 当前允许重复
+
+const $ = s => document.querySelector(s);
+const setStatus = t => { $('#status').textContent = t || '' };
+// 允许大写英文与数字，且自动转大写
+const ids = s => (s.toUpperCase().match(/[A-Z0-9]+/g) || []);
+const nowStr = () => {
+  const d=new Date(), p=n=>String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+};
+const load = () => { try { return JSON.parse(localStorage.getItem(KEY) || '[]') } catch { return [] } };
+const save = a => localStorage.setItem(KEY, JSON.stringify(a));
+
+/* ====== 搜索/筛选/排序状态 ====== */
+const state = {
+  sortKey: '时间',       // '时间' | '编号'
+  sortDir: 'desc',       // 'asc' | 'desc'
+  q: '',                 // 搜索关键字
+  d1: null,              // 起始日期（Date 或 null）
+  d2: null               // 结束日期（Date 或 null，含当天）
+};
+
+const parseTime = (s) => {
+  if(!s) return null;
+  const t = s.replace(' ', 'T');          // 近似 ISO
+  const d = new Date(t);
+  return isNaN(d) ? null : d;
+};
+
+const matchKeywords = (no, q) => {
+  if(!q) return true;
+  const tokens = q.toUpperCase().split(/[,\s]+/).filter(Boolean);
+  const S = String(no || '').toUpperCase();
+  return tokens.every(tok => S.includes(tok));  // 所有关键字需命中
+};
+
+const inDateRange = (timeStr, d1, d2) => {
+  if(!d1 && !d2) return true;
+  const d = parseTime(timeStr);
+  if(!d) return false;
+  if(d1 && d < d1) return false;
+  if(d2){
+    const d2end = new Date(d2.getFullYear(), d2.getMonth(), d2.getDate(), 23,59,59,999);
+    if(d > d2end) return false;
+  }
+  return true;
+};
+
+function applyFilterSort(data){
+  // 1) 过滤
+  const filtered = data.filter(r =>
+    matchKeywords(r.编号, state.q) && inDateRange(r.时间, state.d1, state.d2)
+  );
+  // 2) 排序
+  const key = state.sortKey;
+  const dir = state.sortDir === 'asc' ? 1 : -1;
+  filtered.sort((a,b)=>{
+    if(key === '时间'){
+      const da = parseTime(a.时间), db = parseTime(b.时间);
+      if(!da && !db) return 0;
+      if(!da) return 1; if(!db) return -1;
+      return (da - db) * dir;
+    }else{
+      const sa = String(a.编号||''), sb = String(b.编号||'');
+      return sa.localeCompare(sb, 'zh-Hans-CN') * dir;
+    }
   });
-  go.addEventListener('click', enter);
-  pwd.addEventListener('keydown', e=>{ if(e.key==="Enter") enter(); });
-  window.addEventListener('DOMContentLoaded', ()=> pwd.focus());
+  return filtered;
+}
+
+/* ====== 扫描枪友好（方案 C：识别输入速度） ====== */
+const inp = document.getElementById('inp');
+let lastKeyTime = 0;
+const SCAN_THRESHOLD = 120; // ms，<120ms 判定为扫描枪
+
+// 页面加载后保持焦点在输入框，便于连扫
+window.addEventListener('DOMContentLoaded', () => {
+  if (inp) inp.focus();
+  setInterval(() => {
+    if (document.activeElement !== inp) inp.focus();
+  }, 2000);
+});
+
+// 记录非回车按键时间
+inp.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter') lastKeyTime = Date.now();
+});
+
+// 回车：根据速度判定是否自动“上架”
+inp.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const delta = Date.now() - lastKeyTime;
+    if (delta < SCAN_THRESHOLD) {
+      e.preventDefault();
+      document.getElementById('btnAdd').click();
+    } else {
+      // 人工输入：不自动提交（保留默认行为，或按需 e.preventDefault();）
+    }
+  }
+});
+
+/* ====== 渲染 ====== */
+function render(){
+  const data = load();
+  const rows = applyFilterSort(data);
+  const tb = document.getElementById('tbody');
+  tb.innerHTML = '';
+  if(!rows.length){
+    tb.innerHTML = `<tr><td class="empty" colspan="2">无匹配数据</td></tr>`;
+    setStatus(state.q || state.d1 || state.d2 ? '已应用筛选' : '');
+  }else{
+    const frag = document.createDocumentFragment();
+    for(const r of rows){
+      const tr = document.createElement('tr');
+      const td1 = document.createElement('td'); td1.textContent = r.编号 ?? '';
+      const td2 = document.createElement('td'); td2.textContent = r.时间 ?? '';
+      tr.append(td1, td2); frag.appendChild(tr);
+    }
+    tb.appendChild(frag);
+    setStatus(`共 ${rows.length} 条${(rows.length !== data.length) ? `（已筛选）` : ''}`);
+  }
+  // 更新表头箭头
+  document.querySelectorAll('th[data-key]').forEach(th=>{
+    th.classList.toggle('active', th.dataset.key===state.sortKey);
+    const sp = th.querySelector('.sort');
+    sp.textContent = (th.dataset.key===state.sortKey) ? (state.sortDir==='asc'?'▲':'▼') : '';
+  });
+}
+
+/* ====== 绑定工具条与表头事件 ====== */
+const qInput = document.getElementById('q');
+const d1Input = document.getElementById('d1');
+const d2Input = document.getElementById('d2');
+const clearBtn = document.getElementById('clear');
+
+let qTimer = null;
+qInput.addEventListener('input', ()=>{
+  clearTimeout(qTimer);
+  qTimer = setTimeout(()=>{
+    state.q = qInput.value.trim();
+    render();
+  }, 200);
+});
+d1Input.addEventListener('change', ()=>{
+  state.d1 = d1Input.value ? new Date(d1Input.value + 'T00:00:00') : null;
+  render();
+});
+d2Input.addEventListener('change', ()=>{
+  state.d2 = d2Input.value ? new Date(d2Input.value + 'T00:00:00') : null;
+  render();
+});
+clearBtn.addEventListener('click', ()=>{
+  qInput.value = ''; d1Input.value=''; d2Input.value='';
+  state.q=''; state.d1=null; state.d2=null;
+  render();
+});
+
+// 表头点击排序
+document.querySelectorAll('th[data-key]').forEach(th=>{
+  th.addEventListener('click', ()=>{
+    const key = th.dataset.key;
+    if(state.sortKey === key){
+      state.sortDir = (state.sortDir === 'asc') ? 'desc' : 'asc';
+    }else{
+      state.sortKey = key;
+      state.sortDir = (key === '时间') ? 'desc' : 'asc'; // 默认时间倒序、编号正序
+    }
+    render();
+  });
+});
+
+/* ====== 上/下架操作 ====== */
+document.getElementById('btnAdd').addEventListener('click', ()=>{
+  const raw = (inp.value||'').trim();
+  if(!raw) return;
+  if(raw.toLowerCase()==='cleanall'){
+    save([]); inp.value=''; render(); setStatus('表格已清空'); inp.focus(); return;
+  }
+  const arr = ids(raw);
+  if(arr.length===0){ setStatus('未识别到任何编号'); inp.focus(); return; }
+  const t = nowStr();
+  let data = load();
+  if(ALLOW_DUPLICATES){
+    for(const n of arr) data.push({ 编号:String(n), 时间:t });
+  }else{
+    const map = new Map(data.map(r => [String(r.编号), r]));
+    for(const n of arr) map.set(String(n), { 编号:String(n), 时间:t });
+    data = [...map.values()];
+  }
+  save(data);
+  inp.value='';
+  render(); setStatus(`已新增 ${arr.length} 条，现有 ${data.length} 条`);
+  inp.focus(); // 便于连续扫码
+});
+
+document.getElementById('btnDel').addEventListener('click', ()=>{
+  const raw = (inp.value||'').trim();
+  if(!raw) return;
+  const arr = ids(raw);
+  if(arr.length===0){ setStatus('未识别到需要下架的编号'); inp.focus(); return; }
+  let data = load();
+  const before = data.length;
+  const set = new Set(arr.map(String));
+  data = data.filter(r => !set.has(String(r.编号)));
+  save(data);
+  inp.value='';
+  render(); setStatus(`已下架 ${before - data.length} 条，现有 ${data.length} 条`);
+  inp.focus(); // 便于连续扫码
+});
+
+/* 初始化 */
+if(localStorage.getItem(KEY)===null){ save([]); }
+render();
 </script>
 </body>
 </html>
