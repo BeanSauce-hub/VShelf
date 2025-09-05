@@ -1,355 +1,86 @@
-<!doctype html>
-<html lang="zh-CN">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>OPS虚拟库位</title>
-  <style>
-    :root{
-      --neo:#00ff66; --neo-dim:rgba(0,255,102,.22);
-      --ink:#0a0a0a; --fg:#e7ffee;
-    }
-    *{box-sizing:border-box}
-    html,body{margin:0;height:100%;background:transparent;overflow:hidden;}
-    body{
-      display:grid;place-items:center;position:relative;color:var(--fg);
-      font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace
-    }
-    #c{position:fixed;inset:0;z-index:0;display:block}
-    .fx-grid::before,.fx-grid::after{content:""; position:fixed; inset:0; pointer-events:none; z-index:0;}
-    .fx-grid::before{
-      background:
-        linear-gradient(transparent 95%, rgba(0,0,0,.35) 100%) 0 0/100% 2px,
-        linear-gradient(90deg, rgba(0,0,0,.35) 1px, transparent 1px) 0 0/2px 100%;
-      mix-blend-mode:soft-light;
-    }
-    .fx-grid::after{
-      background:linear-gradient(to bottom, rgba(0,255,102,.06), transparent 60%);
-      animation:scan 6s linear infinite; mix-blend-mode:overlay;
-    }
-    @keyframes scan{0%{transform:translateY(-100%)}100%{transform:translateY(100%)}}
-
-    .card,.panel{
-      position:relative; z-index:1; border-radius:18px;
-      background:linear-gradient(180deg, rgba(12,18,16,.58), rgba(6,10,8,.58));
-      backdrop-filter:blur(10px);
-      border:1px solid var(--neo-dim);
-      box-shadow:0 0 0 1px rgba(0,255,102,.08) inset,
-                 0 12px 40px rgba(0,0,0,.55),
-                 0 0 24px rgba(0,255,102,.06);
-    }
-    .card{width:min(92vw, 460px); padding:28px 24px 22px;}
-    .brand{display:flex;align-items:center;gap:10px;margin-bottom:12px;
-           letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--fg)}
-    .dot{width:9px;height:9px;border-radius:50%;background:var(--neo);box-shadow:0 0 14px var(--neo)}
-    h1,h2{margin:0}
-    h1{font-size:18px;opacity:.9}
-    h2{font-size:clamp(22px, 3.5vw, 28px); letter-spacing:.06em; text-align:center; margin-bottom:10px}
-
-    label{display:block;font-size:12px;color:#b5ffcf;margin:14px 0 6px;letter-spacing:.06em}
-    .row{display:flex;gap:8px}
-    input[type="password"], input[type="text"]{
-      flex:1; padding:12px 12px 12px 14px; border-radius:12px; outline:none; color:var(--fg);
-      background:rgba(3,7,5,.55); border:1px solid rgba(0,255,102,.18);
-      box-shadow:inset 0 0 0 1px rgba(0,255,102,.08);
-      transition:border-color .2s, box-shadow .2s, background .2s;
-    }
-    input::placeholder{color:#8bd6a8}
-    input:focus{border-color:var(--neo); box-shadow:0 0 0 3px rgba(0,255,102,.18), inset 0 0 0 1px rgba(0,255,102,.18); background:rgba(3,7,5,.7)}
-
-    button{
-      padding:12px 14px;border:0;border-radius:12px;cursor:pointer;
-      font-weight:800; letter-spacing:.06em;
-      transition:transform .08s ease, box-shadow .2s ease, background .2s ease;
-      white-space:nowrap; color:#000;
-    }
-    .btn-ghost{background:rgba(0,0,0,.35); color:#c7ffe0; border:1px solid rgba(0,255,102,.22)}
-    .btn-ghost[aria-pressed="true"]{background:rgba(0,255,102,.12)}
-    .btn-primary{
-      background:linear-gradient(180deg,#00ff66 0%, #00cc55 100%); border:1px solid #00ff66;
-      box-shadow:0 0 15px rgba(0,255,102,.6), 0 0 30px rgba(0,255,102,.4);
-    }
-    .btn-danger{
-      background:linear-gradient(180deg,#ff6b6b,#ff3b3b); border:1px solid rgba(255,90,90,.9);
-      color:#000; box-shadow:0 0 15px rgba(255,90,90,.35), 0 0 30px rgba(255,90,90,.2);
-    }
-    button:hover{filter:brightness(1.05)}
-    button:active{transform:translateY(1px) scale(.99)}
-    button:disabled{opacity:.5;cursor:not-allowed;box-shadow:none!important}
-
-    .statusbar{
-      position:fixed; top:12px;
-      display:flex; gap:10px; z-index:1; font-size:12px; color:#b5ffcf;
-      background:rgba(0,0,0,.35); border:1px solid rgba(0,255,102,.18);
-      padding:6px 10px; border-radius:999px; backdrop-filter:blur(6px)
-    }
-    .pill{display:flex;align-items:center;gap:6px}
-    .led{width:6px;height:6px;border-radius:50%;background:var(--neo);box-shadow:0 0 10px var(--neo)}
-
-    .app{
-      display:none;
-      position:relative; z-index:1;
-      width:100%;
-      min-height:100svh;
-      padding:24px;
-      overflow:auto;
-      place-items:center;
-      justify-items:center;
-    }
-    @supports (height: 100dvh){ .app{ min-height:100dvh; } }
-
-    .panel{ width:min(96vw,1100px); padding:22px 20px; margin:auto; }
-    .grid{ display:grid; grid-template-columns:1fr; gap:14px; }
-
-    .toolbar{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:center; margin-bottom:6px }
-    .toolbar input[type="text"], .toolbar input[type="date"]{
-      padding:10px 12px; border-radius:10px; border:1px solid rgba(0,255,102,.18);
-      background:rgba(3,7,5,.45); color:var(--fg); outline:none
-    }
-
-    .preview{
-      height:clamp(280px, 58vh, 72dvh);
-      min-height:260px;
-      background:rgba(255,255,255,.06);
-      border:1px solid rgba(0,255,102,.18);
-      border-radius:12px; overflow:auto; padding:10px
-    }
-    @supports (height: 1dvh){ .preview{ height:clamp(280px, 58dvh, 72dvh); } }
-
-    table{width:100%; border-collapse:collapse; font-size:13px; color:#eafaea}
-    thead th{position:sticky; top:0; background:rgba(0,0,0,.35); border-bottom:1px solid rgba(0,255,102,.18); text-align:center; padding:8px}
-    tbody td{padding:8px; border-bottom:1px solid rgba(255,255,255,.06); white-space:nowrap; text-align:center; color:#e7ffee}
-    .empty{color:#95c7ab; padding:18px 8px; text-align:center}
-    .ops{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:center }
-    .ops input[type="text"]{min-width:260px; flex:1}
-    .status{font-size:12px; color:#b5ffcf; text-align:center; min-height:16px}
-    th .sort{opacity:.7; font-size:12px; margin-left:2px} th.active{color:#b5ffcf}
-    @media (min-width: 1200px){ .preview{ height:clamp(320px, 60vh, 70dvh); } }
-  </style>
-</head>
-<body class="fx-grid">
-
-  <canvas id="c"></canvas>
-
-  <div class="statusbar" id="statusbar">
-    <span class="pill"><span class="led"></span> MIA OPS</span>
-    <span class="pill">v0.1</span>
-    <span class="pill"><span id="modeText">Secure Gate</span></span>
-  </div>
-
-  <!-- 登录 -->
-  <div class="card" id="gate" role="dialog" aria-labelledby="title">
-    <div class="brand"><span class="dot"></span><h1 id="title">OPS 虚拟货架</h1></div>
-    <label for="pwd">ACCESS CODE</label>
-    <div class="row">
-      <input id="pwd" type="password" placeholder="请输入口令…" autocomplete="current-password" />
-      <button id="show" class="btn-ghost" type="button" aria-pressed="false">显示</button>
-      <button id="go" class="btn-primary" type="button">进入</button>
-    </div>
-    <div id="err" class="error" role="alert" style="color:#ff6b6b; font-size:12px; min-height:18px; margin-top:10px; text-shadow:0 0 10px rgba(255,0,0,.25)"></div>
-  </div>
-
-  <!-- 应用 -->
-  <div class="app" id="app">
-    <div class="panel">
-      <div class="grid">
-        <div class="toolbar">
-          <input id="q"  type="text" placeholder="搜索编号（空格/逗号分隔多关键字）" />
-          <input id="d1" type="date" aria-label="开始日期"><span>至</span><input id="d2" type="date" aria-label="结束日期">
-          <button id="clear" class="btn-ghost" type="button">清空筛选</button>
-        </div>
-        <div class="preview">
-          <table>
-            <thead>
-              <tr>
-                <th data-key="编号"  style="width:42%; cursor:pointer">运单号 <span class="sort"></span></th>
-                <th data-key="时间"  style="cursor:pointer">操作时间 <span class="sort"></span></th>
-              </tr>
-            </thead>
-            <tbody id="tbody">
-              <tr><td class="empty" colspan="2">暂无数据</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="ops">
-          <input id="inp" type="text" placeholder="编号可用逗号/空格/换行分隔" spellcheck="false" autocapitalize="off" autocomplete="off" autofocus />
-          <button id="btnAdd" class="btn-primary" type="button">上架</button>
-          <button id="btnDel" class="btn-danger"  type="button">下架</button>
-        </div>
-        <div class="status" id="status"></div>
-      </div>
-    </div>
-  </div>
-
 <script>
-/* ========== Matrix 背景 ========== */
-(()=> {
-  const c = document.getElementById('c');
-  const x = c.getContext('2d');
-  const CH = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const FS = 16, COLOR = "rgba(0,255,102,0.3)";
-  let dpr=1, cols=0, drops=[];
-  function resize(){
-    dpr = Math.max(1, window.devicePixelRatio || 1);
-    const w = innerWidth, h = innerHeight;
-    c.width = Math.floor(w * dpr);
-    c.height = Math.floor(h * dpr);
-    x.setTransform(dpr,0,0,dpr,0,0);
-    x.font = `${FS}px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`;
-    x.textBaseline = "top";
-    cols = Math.floor(w / FS);
-    drops = Array(cols).fill(0);
-    x.fillStyle = "#000"; x.fillRect(0,0,w,h);
-  }
-  function draw(){
-    x.fillStyle = "rgba(0,0,0,0.07)";
-    x.fillRect(0,0,innerWidth,innerHeight);
-    x.fillStyle = COLOR;
-    for(let i=0;i<cols;i++){
-      const ch = CH[(Math.random()*CH.length)|0];
-      const xPos = i * FS, yPos = drops[i] * FS;
-      x.fillText(ch, xPos, yPos);
-      if (yPos > innerHeight && Math.random() > 0.975) drops[i]=0; else drops[i]++;
-    }
-    requestAnimationFrame(draw);
-  }
-  addEventListener('resize', resize);
-  resize(); draw();
-})();
+/* ========== Matrix 背景（与你现有一致） ========== */
+(()=>{const c=document.getElementById('c');const x=c.getContext('2d');const CH="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";const FS=16,COLOR="rgba(0,255,102,0.3)";let dpr=1,cols=0,drops=[];function resize(){dpr=Math.max(1,window.devicePixelRatio||1);const w=innerWidth,h=innerHeight;c.width=Math.floor(w*dpr);c.height=Math.floor(h*dpr);x.setTransform(dpr,0,0,dpr,0,0);x.font=`${FS}px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`;x.textBaseline="top";cols=Math.floor(w/FS);drops=Array(cols).fill(0);x.fillStyle="#000";x.fillRect(0,0,w,h)}function draw(){x.fillStyle="rgba(0,0,0,0.07)";x.fillRect(0,0,innerWidth,innerHeight);x.fillStyle=COLOR;for(let i=0;i<cols;i++){const ch=CH[(Math.random()*CH.length)|0];const xPos=i*FS,yPos=drops[i]*FS;x.fillText(ch,xPos,yPos);if(yPos>innerHeight&&Math.random()>0.975)drops[i]=0;else drops[i]++}requestAnimationFrame(draw)}addEventListener('resize',resize);resize();draw()})();
 
-/* ========== 顶部徽章对齐 ========== */
-const statusbar = document.getElementById('statusbar');
-const gate = document.getElementById('gate');
-function alignBadge(){
-  const target = (getComputedStyle(gate).display !== 'none') ? gate : document.querySelector('.panel');
-  const r = target.getBoundingClientRect();
-  statusbar.style.left = (r.left + r.width / 2) + 'px';
-  statusbar.style.transform = 'translateX(-50%)';
-}
-addEventListener('resize', alignBadge);
-addEventListener('DOMContentLoaded', alignBadge);
+/* ========== 顶部徽章对齐（与你现有一致） ========== */
+const statusbar=document.getElementById('statusbar');
+const gate=document.getElementById('gate');
+function alignBadge(){const target=(getComputedStyle(gate).display!=='none')?gate:document.querySelector('.panel');const r=target.getBoundingClientRect();statusbar.style.left=(r.left+r.width/2)+'px';statusbar.style.transform='translateX(-50%)'}
+addEventListener('resize',alignBadge);addEventListener('DOMContentLoaded',alignBadge);
 
-/* ========== 登录（SHA-256） ========== */
-/* ptothez → SHA-256 → c4ea541037f800a6c3ee534e5e29f8b833eaf7a11e6d4281510026dea5abcb30 */
-const h = "c4ea541037f800a6c3ee534e5e29f8b833eaf7a11e6d4281510026dea5abcb30";
-const pwd = document.getElementById('pwd');
-const go  = document.getElementById('go');
-const err = document.getElementById('err');
-const showBtn = document.getElementById('show');
-
-async function sha256(msg){
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(msg));
-  return [...new Uint8Array(buf)].map(x=>x.toString(16).padStart(2,"0")).join("");
-}
+/* ========== 登录（与你现有一致，去掉自动轮询 setInterval） ========== */
+const h="c4ea541037f800a6c3ee534e5e29f8b833eaf7a11e6d4281510026dea5abcb30";
+const pwd=document.getElementById('pwd');const go=document.getElementById('go');const err=document.getElementById('err');const showBtn=document.getElementById('show');
+async function sha256(msg){const buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(msg));return[...new Uint8Array(buf)].map(x=>x.toString(16).padStart(2,"0")).join("")}
 async function enter(){
-  err.textContent="";
-  const v=(pwd.value||"").trim();
-  if(!v){ err.textContent="请先输入密码"; return; }
-  try{
-    const hash = await sha256(v);
-    if(hash !== h){ err.textContent="密码不正确"; pwd.focus(); pwd.select(); return; }
-  }catch(e){
-    err.textContent = "当前环境不支持安全校验（WebCrypto）。请用 https/本地服务器打开。"; return;
+  err.textContent="";const v=(pwd.value||"").trim();if(!v){err.textContent="请先输入密码";return}
+  try{const hash=await sha256(v);if(hash!==h){err.textContent="密码不正确";pwd.focus();pwd.select();return}}
+  catch(e){err.textContent="当前环境不支持安全校验（WebCrypto）。请用 https/本地服务器打开。";return}
+  // 展示应用
+  gate.style.display="none";document.getElementById('app').style.display="grid";document.body.style.overflow="hidden";
+  document.getElementById('modeText').textContent='Virtual Shelf';alignBadge();
+  // 首次拉取
+  try{setStatus('正在加载…');await fetchAllFromServer();render();setStatus(`已加载 ${CACHE.length} 条`)}catch(e){setStatus('加载失败：'+e.message)}
+}
+showBtn.addEventListener('click',()=>{const showing=pwd.type==="text";pwd.type=showing?"password":"text";showBtn.textContent=showing?"显示":"隐藏";showBtn.setAttribute('aria-pressed',String(!showing));pwd.focus()});
+go.addEventListener('click',()=>enter());pwd.addEventListener('keydown',e=>{if(e.key==="Enter")enter()});addEventListener('DOMContentLoaded',()=>pwd.focus());
+
+/* ========== 云端存储：GetPantry + 队列 + 429 退避 ========== */
+const PANTRY_ID='492a92b0-9b05-488c-9621-85ef5fd5de61';
+const BASKET='vshelf';
+const API=`https://getpantry.cloud/apiv1/pantry/${PANTRY_ID}/basket/${BASKET}`;
+const $=s=>document.querySelector(s);
+const setStatus=t=>{$('#status').textContent=t||''};
+const ids=s=>(s.toUpperCase().match(/[A-Z0-9]+/g)||[]);
+const nowStr=()=>{const d=new Date(),p=n=>String(n).padStart(2,'0');return`${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`};
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+const ALLOW_DUPLICATES=true;
+
+// --- 请求串行队列，避免并发导致 429 ---
+let queue=Promise.resolve();
+function enqueue(task){queue=queue.then(task,task);return queue}
+
+// --- 带 429 退避的 fetch ---
+async function fetchRetry(url,opts={},allow404=false){
+  let delay=800;
+  for(let i=0;i<5;i++){
+    const r=await fetch(url,opts).catch(e=>({ok:false,_e:e,status:0}));
+    if(r.status===429){setStatus(`频率过高，${Math.round(delay/1000)}s 后自动重试…`);await wait(delay);delay=Math.min(delay*2,10000);continue}
+    if(allow404 && r.status===404) return r;
+    if(!r.ok){ if(i===4) { const txt=await (r.text?.()||Promise.resolve('')); throw new Error(`HTTP ${r.status} ${txt}`)} await wait(delay);delay=Math.min(delay*2,10000);continue }
+    return r;
   }
-  // 登录成功 → 展示应用 + 初次拉取
-  document.getElementById('gate').style.display="none";
-  const app  = document.getElementById('app');
-  app.style.display="grid";
-  document.body.style.overflow = "hidden";
-  document.getElementById('modeText').textContent = 'Virtual Shelf';
-  alignBadge();
-  try{
-    setStatus('正在连接共享篮子…');
-    await fetchAllFromServer(); render();
-    setStatus(`已加载 ${CACHE.length} 条`);
-    // 如需自动刷新，可保留下一行（15s一次）。不需要可删掉。
-    setInterval(async()=>{ await fetchAllFromServer(); render(); }, 15000);
-  }catch(e){ setStatus('拉取失败：'+e.message); render(); }
-}
-showBtn.addEventListener('click', ()=>{
-  const showing = pwd.type==="text";
-  pwd.type = showing? "password":"text";
-  showBtn.textContent = showing? "显示":"隐藏";
-  showBtn.setAttribute('aria-pressed', String(!showing));
-  pwd.focus();
-});
-go.addEventListener('click', ()=>enter());
-pwd.addEventListener('keydown', e=>{ if(e.key==="Enter") enter(); });
-addEventListener('DOMContentLoaded', ()=> pwd.focus());
-
-/* ========== 云端存储：GetPantry（加固版） ========== */
-const PANTRY_ID = '492a92b0-9b05-488c-9621-85ef5fd5de61';
-const BASKET    = 'vshelf';
-const API_BASE  = `https://getpantry.cloud/apiv1/pantry/${PANTRY_ID}/basket/${BASKET}`;
-
-const $ = s => document.querySelector(s);
-const setStatus = t => { $('#status').textContent = t || '' };
-const ids = s => (s.toUpperCase().match(/[A-Z0-9]+/g) || []);
-const nowStr = () => {
-  const d=new Date(), p=n=>String(n).padStart(2,'0');
-  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
-};
-const wait = (ms)=>new Promise(r=>setTimeout(r,ms));
-const ALLOW_DUPLICATES = true;
-
-/* ---- 统一的 GET / PUT / POST 封装，带反缓存 & 兜底 ---- */
-async function apiGet(){
-  const url = `${API_BASE}?ts=${Date.now()}`;
-  const r = await fetch(url, { cache:'no-store', headers:{ 'Accept':'application/json' }});
-  if (r.status === 404) return null;  // 篮子不存在
-  if (!r.ok) throw new Error(`READ ${r.status}`);
-  return r.json();
-}
-async function apiPut(body){
-  const r = await fetch(API_BASE, {
-    method:'PUT',
-    headers:{ 'Content-Type':'application/json', 'Accept':'application/json' },
-    body: JSON.stringify(body)
-  });
-  return r;
-}
-async function apiPost(body){
-  const r = await fetch(API_BASE, {
-    method:'POST',
-    headers:{ 'Content-Type':'application/json', 'Accept':'application/json' },
-    body: JSON.stringify(body)
-  });
-  return r;
+  throw new Error('网络重试耗尽');
 }
 
-/* ---- 读/写 rows ---- */
 async function readRows(){
-  const j = await apiGet();
-  if (!j || typeof j!=='object' || !Array.isArray(j.rows)) return [];
-  return j.rows;
+  const r=await fetchRetry(`${API}?ts=${Date.now()}`,{cache:'no-store',headers:{'Accept':'application/json'}},true);
+  if(r.status===404) return [];
+  const j=await r.json().catch(()=>({rows:[]}));
+  return Array.isArray(j.rows)?j.rows:[];
 }
 async function writeRows(rows){
-  const body = { rows };
-  let r = await apiPut(body);
-  if (r.status === 404 || r.status === 405) {
-    // 没有篮子或 PUT 不允许 → 改 POST 创建/覆盖
-    r = await apiPost(body);
-  }
-  if (!r.ok) {
-    const text = await r.text().catch(()=> '');
-    throw new Error(`WRITE ${r.status} ${text}`);
+  const body=JSON.stringify({rows});
+  let r=await fetchRetry(API,{method:'PUT',headers:{'Content-Type':'application/json','Accept':'application/json'},body});
+  if(r.status===404||r.status===405){
+    r=await fetchRetry(API,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body});
   }
 }
 
-/* ====== 搜索/筛选/排序（与原版一致） ====== */
-const state = { sortKey:'时间', sortDir:'desc', q:'', d1:null, d2:null };
-const parseTime = s => { if(!s) return null; const d=new Date(s.replace(' ','T')); return isNaN(d)?null:d; };
-const matchKeywords = (no,q)=>{ if(!q) return true; const tokens=q.toUpperCase().split(/[,\s]+/).filter(Boolean); const S=String(no||'').toUpperCase(); return tokens.every(tok=>S.includes(tok)); };
-const inDateRange = (timeStr,d1,d2)=>{ if(!d1&&!d2) return true; const d=parseTime(timeStr); if(!d) return false; if(d1&&d<d1) return false; if(d2){ const e=new Date(d2.getFullYear(),d2.getMonth(),d2.getDate(),23,59,59,999); if(d>e) return false } return true };
+// ====== 过滤 / 排序（与你现有一致） ======
+const state={sortKey:'时间',sortDir:'desc',q:'',d1:null,d2:null};
+const parseTime=s=>{if(!s)return null;const d=new Date(s.replace(' ','T'));return isNaN(d)?null:d};
+const matchKeywords=(no,q)=>{if(!q)return true;const tokens=q.toUpperCase().split(/[,\s]+/).filter(Boolean);const S=String(no||'').toUpperCase();return tokens.every(tok=>S.includes(tok))};
+const inDateRange=(timeStr,d1,d2)=>{if(!d1&&!d2)return true;const d=parseTime(timeStr);if(!d)return false;if(d1&&d<d1)return false;if(d2){const e=new Date(d2.getFullYear(),d2.getMonth(),d2.getDate(),23,59,59,999);if(d>e)return false}return true};
 
-let CACHE = [];
+let CACHE=[];
 function applyFilterSort(data){
-  const filtered = data.filter(r => matchKeywords(r.编号, state.q) && inDateRange(r.时间, state.d1, state.d2));
-  const key=state.sortKey, dir=state.sortDir==='asc'?1:-1;
+  const filtered=data.filter(r=>matchKeywords(r.编号,state.q)&&inDateRange(r.时间,state.d1,state.d2));
+  const key=state.sortKey,dir=state.sortDir==='asc'?1:-1;
   filtered.sort((a,b)=>{
     if(key==='时间'){
-      const da=parseTime(a.时间), db=parseTime(b.时间);
-      if(!da&&!db) return 0; if(!da) return 1; if(!db) return -1;
+      const da=parseTime(a.时间),db=parseTime(b.时间);
+      if(!da&&!db)return 0;if(!da)return 1;if(!db)return -1;
       return (da-db)*dir;
     }else{
       return String(a.编号||'').localeCompare(String(b.编号||''),'zh-Hans-CN')*dir;
@@ -358,121 +89,65 @@ function applyFilterSort(data){
   return filtered;
 }
 function render(){
-  const rows = applyFilterSort(CACHE);
-  const tb = document.getElementById('tbody');
-  tb.innerHTML = '';
-  if(!rows.length){
-    tb.innerHTML = `<tr><td class="empty" colspan="2">无匹配数据</td></tr>`;
-    setStatus(state.q || state.d1 || state.d2 ? '已应用筛选' : '');
-  }else{
-    const frag = document.createDocumentFragment();
-    for(const r of rows){
-      const tr = document.createElement('tr');
-      const td1 = document.createElement('td'); td1.textContent = r.编号 ?? '';
-      const td2 = document.createElement('td'); td2.textContent = r.时间 ?? '';
-      tr.append(td1, td2); frag.appendChild(tr);
-    }
+  const rows=applyFilterSort(CACHE);
+  const tb=document.getElementById('tbody');tb.innerHTML='';
+  if(!rows.length){tb.innerHTML=`<tr><td class="empty" colspan="2">无匹配数据</td></tr>`;setStatus(state.q||state.d1||state.d2?'已应用筛选':'')}
+  else{
+    const frag=document.createDocumentFragment();
+    for(const r of rows){const tr=document.createElement('tr');const td1=document.createElement('td');td1.textContent=r.编号??'';const td2=document.createElement('td');td2.textContent=r.时间??'';tr.append(td1,td2);frag.appendChild(tr)}
     tb.appendChild(frag);
     setStatus(`共 ${rows.length} 条${(rows.length!==CACHE.length)?'（已筛选）':''}`);
   }
   document.querySelectorAll('th[data-key]').forEach(th=>{
-    th.classList.toggle('active', th.dataset.key===state.sortKey);
-    th.querySelector('.sort').textContent = (th.dataset.key===state.sortKey)?(state.sortDir==='asc'?'▲':'▼'):'';
+    th.classList.toggle('active',th.dataset.key===state.sortKey);
+    th.querySelector('.sort').textContent=(th.dataset.key===state.sortKey)?(state.sortDir==='asc'?'▲':'▼'):'';
   });
 }
 
-/* ---- 与云端交互（加固） ---- */
-async function fetchAllFromServer(){
-  const rows = await readRows();
-  CACHE = rows;
-}
+async function fetchAllFromServer(){ CACHE = await enqueue(()=>readRows()); }
 async function addToServer(arr){
-  const rows = await readRows();         // 读老数据
-  const t = nowStr();
-  if (ALLOW_DUPLICATES){
-    for (const n of arr) rows.push({ 编号:String(n).toUpperCase(), 时间:t });
-  }else{
-    const map = new Map(rows.map(r => [String(r.编号).toUpperCase(), r]));
-    for(const n of arr) map.set(String(n).toUpperCase(), { 编号:String(n).toUpperCase(), 时间:t });
-    rows.splice(0, rows.length, ...map.values());
-  }
-  await writeRows(rows);                 // 写新数据
-  await wait(300);                       // 等边缘同步
+  await enqueue(async ()=>{
+    const rows=await readRows();
+    const t=nowStr();
+    if(ALLOW_DUPLICATES){for(const n of arr) rows.push({编号:String(n).toUpperCase(),时间:t})}
+    else{const map=new Map(rows.map(r=>[String(r.编号).toUpperCase(),r]));for(const n of arr) map.set(String(n).toUpperCase(),{编号:String(n).toUpperCase(),时间:t});rows.splice(0,rows.length,...map.values())}
+    await writeRows(rows); await wait(300);
+  });
 }
 async function delFromServer(arr){
-  const delset = new Set(arr.map(x=>String(x).toUpperCase()));
-  const rows = await readRows();
-  const kept = rows.filter(r => !delset.has(String(r.编号).toUpperCase()));
-  await writeRows(kept);
-  await wait(300);
+  await enqueue(async ()=>{
+    const set=new Set(arr.map(x=>String(x).toUpperCase()));
+    const rows=await readRows(); const kept=rows.filter(r=>!set.has(String(r.编号).toUpperCase()));
+    await writeRows(kept); await wait(300);
+  });
 }
 
-/* ====== 扫描枪友好（与原版一致） ====== */
-const inp = document.getElementById('inp');
-let lastKeyTime = 0; const SCAN_THRESHOLD = 120;
-addEventListener('DOMContentLoaded', () => {
-  if (inp) inp.focus(); setInterval(() => { if (document.activeElement !== inp) inp.focus(); }, 2000);
-});
-inp.addEventListener('keydown', (e) => { if (e.key !== 'Enter') lastKeyTime = Date.now(); });
+/* ====== 扫描枪友好 ====== */
+const inp=document.getElementById('inp');let lastKeyTime=0;const SCAN_THRESHOLD=120;
+addEventListener('DOMContentLoaded',()=>{if(inp)inp.focus();setInterval(()=>{if(document.activeElement!==inp)inp.focus()},2000)});
+inp.addEventListener('keydown',e=>{if(e.key!=='Enter')lastKeyTime=Date.now()});
 
-/* ====== 工具条 & 排序（与原版一致） ====== */
-// 省略：与你当前版本一致
+/* ====== 工具条 / 排序绑定 ====== */
+const qInput=document.getElementById('q');const d1Input=document.getElementById('d1');const d2Input=document.getElementById('d2');const clearBtn=document.getElementById('clear');
+let qTimer=null;
+qInput.addEventListener('input',()=>{clearTimeout(qTimer);qTimer=setTimeout(()=>{state.q=qInput.value.trim();render()},200)});
+d1Input.addEventListener('change',()=>{state.d1=d1Input.value?new Date(d1Input.value+'T00:00:00'):null;render()});
+d2Input.addEventListener('change',()=>{state.d2=d2Input.value?new Date(d2Input.value+'T00:00:00'):null;render()});
+clearBtn.addEventListener('click',()=>{qInput.value='';d1Input.value='';d2Input.value='';state.q='';state.d1=null;state.d2=null;render()});
+document.querySelectorAll('th[data-key]').forEach(th=>{th.addEventListener('click',()=>{const key=th.dataset.key;if(state.sortKey===key){state.sortDir=(state.sortDir==='asc')?'desc':'asc'}else{state.sortKey=key;state.sortDir=(key==='时间')?'desc':'asc'}render()})});
 
-/* ====== 上/下架（加入错误提示 + 禁用按钮 + cleanall 修复） ====== */
-const btnAdd = document.getElementById('btnAdd');
-const btnDel = document.getElementById('btnDel');
-
-async function safeRun(btn, fn){
-  try{
-    btn.disabled = true;
-    await fn();
-  }catch(e){
-    console.error(e);
-    setStatus('错误：' + (e?.message||e));
-  }finally{
-    btn.disabled = false;
-  }
-}
-
-btnAdd.addEventListener('click', ()=> safeRun(btnAdd, async ()=>{
-  const raw = (inp.value||'').trim();
-  if(!raw) return;
-
-  if(raw.toLowerCase()==='cleanall'){
-    setStatus('正在清空…');
-    await writeRows([]);        // 直接写空
-    await wait(300);
-    await fetchAllFromServer(); render();
-    inp.value=''; setStatus('表格已清空');
-    return;
-  }
-
-  const arr = ids(raw);
-  if(arr.length===0){ setStatus('未识别到任何编号'); inp.focus(); return; }
-
-  setStatus('正在上架…');
-  await addToServer(arr);
-  await fetchAllFromServer(); render();
-  inp.value='';
-  setStatus(`已新增 ${arr.length} 条，现有 ${CACHE.length} 条`);
-  inp.focus();
+/* ====== 上/下架（禁用按钮 + 统一错误提示 + cleanall 修复） ====== */
+const btnAdd=document.getElementById('btnAdd');const btnDel=document.getElementById('btnDel');
+async function safeRun(btn,fn){try{btn.disabled=true;await fn()}catch(e){console.error(e);setStatus('错误：'+(e?.message||e))}finally{btn.disabled=false}}
+btnAdd.addEventListener('click',()=>safeRun(btnAdd,async ()=>{
+  const raw=(inp.value||'').trim();if(!raw) return;
+  if(raw.toLowerCase()==='cleanall'){setStatus('正在清空…');await writeRows([]);await wait(300);await fetchAllFromServer();render();inp.value='';setStatus('表格已清空');return}
+  const arr=ids(raw);if(arr.length===0){setStatus('未识别到任何编号');inp.focus();return}
+  setStatus('正在上架…');await addToServer(arr);await fetchAllFromServer();render();inp.value='';setStatus(`已新增 ${arr.length} 条，现有 ${CACHE.length} 条`);inp.focus();
 }));
-
-btnDel.addEventListener('click', ()=> safeRun(btnDel, async ()=>{
-  const raw = (inp.value||'').trim();
-  if(!raw) return;
-  const arr = ids(raw);
-  if(arr.length===0){ setStatus('未识别到需要下架的编号'); inp.focus(); return; }
-
-  setStatus('正在下架…');
-  await delFromServer(arr);
-  await fetchAllFromServer(); render();
-  inp.value='';
-  setStatus(`已下架，现有 ${CACHE.length} 条`);
-  inp.focus();
+btnDel.addEventListener('click',()=>safeRun(btnDel,async ()=>{
+  const raw=(inp.value||'').trim();if(!raw) return;
+  const arr=ids(raw);if(arr.length===0){setStatus('未识别到需要下架的编号');inp.focus();return}
+  setStatus('正在下架…');await delFromServer(arr);await fetchAllFromServer();render();inp.value='';setStatus(`已下架，现有 ${CACHE.length} 条`);inp.focus();
 }));
-
 </script>
-</body>
-</html>
-
