@@ -109,7 +109,7 @@
   <!-- 顶部状态条 -->
   <div class="statusbar" id="statusbar">
     <span class="pill"><span class="led"></span> MIA OPS</span>
-    <span class="pill">v0.3</span>
+    <span class="pill">v0.41</span>
     <span class="pill"><span id="modeText">Secure Gate</span></span>
   </div>
 
@@ -255,7 +255,7 @@ window.addEventListener('DOMContentLoaded', ()=> pwd.focus());
 /* ========== JSONBin 适配器：Public 读 / Key 写 ========== */
 /* 必填 Bin；Key 可留空（只读）。若你的 Bin 是 Public，GET 将不需要 Key。 */
 const JBIN_ID   = '68bba2b3ae596e708fe4446c';    // ← 改成你的 Bin ID
-const JBIN_KEY  = '';                             // ← 可留空；填 eyJ... 的 Access Key 才能写入
+const JBIN_KEY  = '$2a$10$A2uNUF7jG7B7PUWYZVU7euJwvxrVhJnPWiO7JFAHcClGk0RbPKzq2';                             // ← 可留空；填 eyJ... 的 Access Key 才能写入
 const JBIN_BASE = `https://api.jsonbin.io/v3/b/${JBIN_ID}`;
 
 /* UI 的 setStatus 已存在，这里兜底一层避免报错 */
@@ -479,4 +479,5 @@ document.getElementById('btnDel').addEventListener('click', async ()=>{
 </script>
 </body>
 </html>
+
 
