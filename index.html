@@ -10,7 +10,9 @@
     html,body{margin:0;height:100%;background:transparent;overflow:hidden;}
     body{ display:grid;place-items:center;position:relative;color:var(--fg);
       font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace }
+    /* 背景画布 */
     #c{position:fixed;inset:0;z-index:0;display:block}
+    /* 科技网格 + 扫描线 */
     .fx-grid::before,.fx-grid::after{ content:""; position:fixed; inset:0; pointer-events:none; z-index:0; }
     .fx-grid::before{
       background:
@@ -23,6 +25,7 @@
       animation:scan 6s linear infinite; mix-blend-mode:overlay;
     }
     @keyframes scan{0%{transform:translateY(-100%)}100%{transform:translateY(100%)}}
+    /* 玻璃卡片 */
     .card,.panel{
       position:relative; z-index:1; border-radius:18px;
       background:linear-gradient(180deg, rgba(12,18,16,.58), rgba(6,10,8,.58));
@@ -64,6 +67,7 @@
     button:hover{filter:brightness(1.05)}
     button:active{transform:translateY(1px) scale(.99)}
     button:disabled{opacity:.5;cursor:not-allowed;box-shadow:none!important}
+    /* 顶部状态条 */
     .statusbar{
       position:fixed; top:12px; display:flex; gap:10px; z-index:1; font-size:12px; color:#b5ffcf;
       background:rgba(0,0,0,.35); border:1px solid rgba(0,255,102,.18);
@@ -71,6 +75,7 @@
     }
     .pill{display:flex;align-items:center;gap:6px}
     .led{width:6px;height:6px;border-radius:50%;background:var(--neo);box-shadow:0 0 10px var(--neo)}
+    /* 应用区 */
     .app{ display:none; position:relative; z-index:1; width:100%; min-height:100svh; padding:24px; overflow:auto; place-items:center; justify-items:center; }
     @supports (height: 100dvh){ .app{ min-height:100dvh; } }
     .panel{ width:min(96vw,1100px); padding:22px 20px; margin:auto; }
@@ -98,14 +103,17 @@
 </head>
 <body class="fx-grid">
 
+  <!-- 背景 -->
   <canvas id="c"></canvas>
 
+  <!-- 顶部状态条 -->
   <div class="statusbar" id="statusbar">
     <span class="pill"><span class="led"></span> MIA OPS</span>
     <span class="pill">v0.3</span>
     <span class="pill"><span id="modeText">Secure Gate</span></span>
   </div>
 
+  <!-- 登录卡片 -->
   <div class="card" id="gate" role="dialog" aria-labelledby="title">
     <div class="brand"><span class="dot"></span><h1 id="title">OPS 虚拟货架</h1></div>
     <label for="pwd">ACCESS CODE</label>
@@ -117,10 +125,12 @@
     <div id="err" class="error" role="alert" style="color:#ff6b6b; font-size:12px; min-height:18px; margin-top:10px; text-shadow:0 0 10px rgba(255,0,0,.25)"></div>
   </div>
 
+  <!-- 应用区 -->
   <div class="app" id="app">
     <div class="panel">
       <div class="grid">
 
+        <!-- 工具条 -->
         <div class="toolbar">
           <input id="q" type="text" placeholder="搜索编号（空格/逗号分隔多关键字）" />
           <input id="d1" type="date" aria-label="开始日期"><span>至</span>
@@ -128,6 +138,7 @@
           <button id="clear" class="btn-ghost" type="button">清空筛选</button>
         </div>
 
+        <!-- 表格预览 -->
         <div class="preview">
           <table>
             <thead>
@@ -142,6 +153,7 @@
           </table>
         </div>
 
+        <!-- 操作区 -->
         <div class="ops">
           <input id="inp" type="text" placeholder="编号可用逗号/空格/换行分隔" spellcheck="false" autocapitalize="off" autocomplete="off" autofocus />
           <button id="btnAdd" class="btn-primary" type="button">上架</button>
@@ -240,25 +252,25 @@ go.addEventListener('click', ()=>enter());
 pwd.addEventListener('keydown', e=>{ if(e.key==="Enter") enter(); });
 window.addEventListener('DOMContentLoaded', ()=> pwd.focus());
 
-/* ===== JSONBin 适配器：支持 Public 读 / 有 Key 写 ===== */
-/* 必填：你的 Bin ID；Key 可留空（只读） */
-const JBIN_ID   = '68bba0ded0ea881f4073764e';      // 你的 Bin ID
-const JBIN_KEY  = '';                               // ← 可留空；填 eyJ... 的 Access Key 就能写
+/* ========== JSONBin 适配器：Public 读 / Key 写 ========== */
+/* 必填 Bin；Key 可留空（只读）。若你的 Bin 是 Public，GET 将不需要 Key。 */
+const JBIN_ID   = '68bba0ded0ea881f4073764e';    // ← 改成你的 Bin ID
+const JBIN_KEY  = '';                             // ← 可留空；填 eyJ... 的 Access Key 才能写入
 const JBIN_BASE = `https://api.jsonbin.io/v3/b/${JBIN_ID}`;
 
-/* 可选：你的 UI 里已有 setStatus；若没有，这里兜底成 console.log */
-const setStatus = (window.setStatus || (t => console.log(t||'')));
+/* UI 的 setStatus 已存在，这里兜底一层避免报错 */
+const _fallbackSetStatus = t => console.log(t||'');
+const setStatusSafe = (t)=> (typeof setStatus === 'function' ? setStatus(t) : _fallbackSetStatus(t));
 
-function buildHeaders(needsAuth){
+function _headers(needsAuth){
   const h = { 'Content-Type': 'application/json' };
   if (needsAuth && JBIN_KEY) h['X-Master-Key'] = JBIN_KEY;
   return h;
 }
-
-async function jbReq(path = '', method = 'GET', body = null, needsAuth = false){
+async function _jb(path='', method='GET', body=null, needsAuth=false){
   const res = await fetch(`${JBIN_BASE}${path}`, {
     method,
-    headers: buildHeaders(needsAuth),
+    headers: _headers(needsAuth),
     body: body ? JSON.stringify(body) : null
   });
   if(!res.ok){
@@ -268,19 +280,17 @@ async function jbReq(path = '', method = 'GET', body = null, needsAuth = false){
   const ct = res.headers.get('content-type') || '';
   return ct.includes('application/json') ? res.json() : null;
 }
-
-/* 读取：Public Bin 可不带 Key */
+/* 统一存储接口 */
 async function storageGet(){
   try{
-    const { record } = await jbReq('', 'GET', null, /*needsAuth*/ !!JBIN_KEY);
-    // 同时兼容 {rows: []} 和直接 []
+    const { record } = await _jb('', 'GET', null, /*needsAuth*/ !!JBIN_KEY);
     if (record && Array.isArray(record.rows)) return record.rows;
     if (Array.isArray(record)) return record;
     return [];
   }catch(e){
-    // 如果 GET 401，多半是填了错误的 Key；再尝试无 Key 读（以防 Bin 已 Public）
+    // 如果因为带了错误 Key 导致 401，再试一次无 Key（适配 Public Bin）
     if (/401/.test(String(e))) {
-      const { record } = await jbReq('', 'GET', null, /*needsAuth*/ false);
+      const { record } = await _jb('', 'GET', null, /*needsAuth*/ false);
       if (record && Array.isArray(record.rows)) return record.rows;
       if (Array.isArray(record)) return record;
       return [];
@@ -288,38 +298,27 @@ async function storageGet(){
     throw e;
   }
 }
-
-/* 写入：无 Key 时给出友好提示 */
 async function storagePut(arr){
-  if(!JBIN_KEY){
-    throw new Error('当前为 Public 只读模式：请在 JBIN_KEY 填入 Access Key 才能写入。');
-  }
-  // 统一写成 {rows:[...]}，若你用纯数组也可改为直接 arr
-  await jbReq('', 'PUT', { rows: arr }, /*needsAuth*/ true);
+  if(!JBIN_KEY) throw new Error('当前为 Public 只读模式：请在 JBIN_KEY 填入 Access Key 才能写入。');
+  await _jb('', 'PUT', { rows: arr }, /*needsAuth*/ true);
 }
-
 async function storageClear(){
-  if(!JBIN_KEY){
-    throw new Error('当前为 Public 只读模式：请在 JBIN_KEY 填入 Access Key 才能清空。');
-  }
-  await storagePut([]); // 清空 rows
+  if(!JBIN_KEY) throw new Error('当前为 Public 只读模式：请在 JBIN_KEY 填入 Access Key 才能清空。');
+  await storagePut([]);
 }
-
 async function storageDeleteByNumbers(nums){
-  if(!JBIN_KEY){
-    throw new Error('当前为 Public 只读模式：请在 JBIN_KEY 填入 Access Key 才能删除。');
-  }
+  if(!JBIN_KEY) throw new Error('当前为 Public 只读模式：请在 JBIN_KEY 填入 Access Key 才能删除。');
   const cur = await storageGet();
   const set = new Set((nums||[]).map(String));
   const next = cur.filter(r => !set.has(String(r.编号)));
   await storagePut(next);
 }
 
-/* ========== 业务层（保留你的功能） ========== */
+/* ========== 业务层（保留原功能） ========== */
 const ALLOW_DUPLICATES = true; // 允许重复编号
 const $ = s => document.querySelector(s);
-const setStatus = t => { $('#status').textContent = t || '' };
-const ids = s => (s.toUpperCase().match(/[A-Z0-9]+/g) || []); // 大写英数
+const setStatus = t => { $('#status').textContent = t || '' }; // 页面状态提示
+const ids = s => (s.toUpperCase().match(/[A-Z0-9]+/g) || []);  // 允许大写英数
 const nowStr = () => {
   const d=new Date(), p=n=>String(n).padStart(2,'0');
   return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
@@ -329,7 +328,6 @@ let busyWrite = false;
 
 /* 搜索/筛选/排序状态 */
 const state = { sortKey:'时间', sortDir:'desc', q:'', d1:null, d2:null };
-
 const parseTime = (s) => { if(!s) return null; const t = s.replace(' ', 'T'); const d = new Date(t); return isNaN(d) ? null : d; };
 const matchKeywords = (no, q) => { if(!q) return true; const tokens = q.toUpperCase().split(/[,\s]+/).filter(Boolean); const S = String(no || '').toUpperCase(); return tokens.every(tok => S.includes(tok)); };
 const inDateRange = (timeStr, d1, d2) => {
@@ -382,7 +380,8 @@ function render(){
 /* 初始化 & 轮询（5 秒） */
 let pollTimer = null;
 async function initData(){
-  try{ cache = await storageGet(); }catch(e){ setStatus('初始化失败：' + e.message); cache = []; }
+  try{ cache = await storageGet(); }
+  catch(e){ setStatus('初始化失败：' + e.message); cache = []; }
   render();
   if(pollTimer) clearInterval(pollTimer);
   pollTimer = setInterval(async ()=>{
@@ -394,7 +393,7 @@ async function initData(){
   }, 5000);
 }
 
-/* 扫描枪友好 */
+/* 扫描枪友好（Enter 快速提交） */
 const inp = document.getElementById('inp');
 let lastKeyTime = 0; const SCAN_THRESHOLD = 120;
 window.addEventListener('DOMContentLoaded', () => {
@@ -480,5 +479,3 @@ document.getElementById('btnDel').addEventListener('click', async ()=>{
 </script>
 </body>
 </html>
-
-
