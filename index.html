@@ -1,157 +1,5 @@
-<!doctype html>
-<html lang="zh-CN">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>OPS虚拟库位</title>
-  <style>
-    :root{ --neo:#00ff66; --neo-dim:rgba(0,255,102,.22); --ink:#0a0a0a; --fg:#e7ffee; }
-    *{box-sizing:border-box}
-    html,body{margin:0;height:100%;background:transparent;overflow:hidden;}
-    body{ display:grid;place-items:center;position:relative;color:var(--fg);
-      font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace }
-
-    #c{position:fixed;inset:0;z-index:0;display:block}
-
-    .fx-grid::before,.fx-grid::after{ content:""; position:fixed; inset:0; pointer-events:none; z-index:0; }
-    .fx-grid::before{
-      background:
-        linear-gradient(transparent 95%, rgba(0,0,0,.35) 100%) 0 0/100% 2px,
-        linear-gradient(90deg, rgba(0,0,0,.35) 1px, transparent 1px) 0 0/2px 100%;
-      mix-blend-mode:soft-light;
-    }
-    .fx-grid::after{ background:linear-gradient(to bottom, rgba(0,255,102,.06), transparent 60%);
-      animation:scan 6s linear infinite; mix-blend-mode:overlay; }
-    @keyframes scan{0%{transform:translateY(-100%)}100%{transform:translateY(100%)}}
-
-    .card,.panel{ position:relative; z-index:1; border-radius:18px;
-      background:linear-gradient(180deg, rgba(12,18,16,.58), rgba(6,10,8,.58));
-      backdrop-filter:blur(10px); border:1px solid var(--neo-dim);
-      box-shadow:0 0 0 1px rgba(0,255,102,.08) inset, 0 12px 40px rgba(0,0,0,.55), 0 0 24px rgba(0,255,102,.06); }
-    .card{width:min(92vw, 460px); padding:28px 24px 22px;}
-
-    .brand{display:flex;align-items:center;gap:10px;margin-bottom:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--fg)}
-    .dot{width:9px;height:9px;border-radius:50%;background:var(--neo);box-shadow:0 0 14px var(--neo)}
-    h1,h2{margin:0} h1{font-size:18px;opacity:.9}
-    h2{font-size:clamp(22px, 3.5vw, 28px); letter-spacing:.06em; text-align:center; margin-bottom:10px}
-
-    label{display:block;font-size:12px;color:#b5ffcf;margin:14px 0 6px;letter-spacing:.06em}
-    .row{display:flex;gap:8px}
-    input[type="password"], input[type="text"]{
-      flex:1; padding:12px 12px 12px 14px; border-radius:12px; outline:none; color:var(--fg);
-      background:rgba(3,7,5,.55); border:1px solid rgba(0,255,102,.18);
-      box-shadow:inset 0 0 0 1px rgba(0,255,102,.08);
-      transition:border-color .2s, box-shadow .2s, background .2s;
-    }
-    input::placeholder{color:#8bd6a8}
-    input:focus{border-color:var(--neo); box-shadow:0 0 0 3px rgba(0,255,102,.18), inset 0 0 0 1px rgba(0,255,102,.18); background:rgba(3,7,5,.7)}
-
-    button{ padding:12px 14px;border:0;border-radius:12px;cursor:pointer;font-weight:800; letter-spacing:.06em;
-      transition:transform .08s ease, box-shadow .2s ease, background .2s ease; white-space:nowrap; color:#000; }
-    .btn-ghost{background:rgba(0,0,0,.35); color:#c7ffe0; border:1px solid rgba(0,255,102,.22)}
-    .btn-ghost[aria-pressed="true"]{background:rgba(0,255,102,.12)}
-    .btn-primary{ background:linear-gradient(180deg,#00ff66 0%, #00cc55 100%); border:1px solid #00ff66;
-      box-shadow:0 0 15px rgba(0,255,102,.6), 0 0 30px rgba(0,255,102,.4); }
-    .btn-danger{ background:linear-gradient(180deg,#ff6b6b,#ff3b3b); border:1px solid rgba(255,90,90,.9);
-      color:#000; box-shadow:0 0 15px rgba(255,90,90,.35), 0 0 30px rgba(255,90,90,.2); }
-    button:hover{filter:brightness(1.05)} button:active{transform:translateY(1px) scale(.99)}
-    button:disabled{opacity:.5;cursor:not-allowed;box-shadow:none!important}
-
-    .statusbar{ position:fixed; top:12px; display:flex; gap:10px; z-index:1; font-size:12px; color:#b5ffcf;
-      background:rgba(0,0,0,.35); border:1px solid rgba(0,255,102,.18); padding:6px 10px; border-radius:999px; backdrop-filter:blur(6px)}
-    .pill{display:flex;align-items:center;gap:6px}
-    .led{width:6px;height:6px;border-radius:50%;background:var(--neo);box-shadow:0 0 10px var(--neo)}
-
-    .app{ display:none; position:relative; z-index:1; width:100%; min-height:100svh; padding:24px; overflow:auto;
-      place-items:center; justify-items:center; }
-    @supports (height: 100dvh){ .app{ min-height:100dvh; } }
-
-    .panel{ width:min(96vw,1100px); padding:22px 20px; margin:auto; }
-    .grid{ display:grid; grid-template-columns:1fr; gap:14px; }
-
-    .toolbar{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:center; margin-bottom:6px }
-    .toolbar input[type="text"], .toolbar input[type="date"]{
-      padding:10px 12px; border-radius:10px; border:1px solid rgba(0,255,102,.18);
-      background:rgba(3,7,5,.45); color:var(--fg); outline:none
-    }
-
-    .preview{ height:clamp(280px, 58vh, 72dvh); min-height:260px; background:rgba(255,255,255,.06);
-      border:1px solid rgba(0,255,102,.18); border-radius:12px; overflow:auto; padding:10px }
-    @supports (height: 1dvh){ .preview{ height:clamp(280px, 58dvh, 72dvh); } }
-
-    table{width:100%; border-collapse:collapse; font-size:13px; color:#eafaea}
-    thead th{position:sticky; top:0; background:rgba(0,0,0,.35); border-bottom:1px solid rgba(0,255,102,.18); text-align:center; padding:8px}
-    tbody td{padding:8px; border-bottom:1px solid rgba(255,255,255,.06); white-space:nowrap; text-align:center; color:#e7ffee}
-    .empty{color:#95c7ab; padding:18px 8px; text-align:center}
-
-    .ops{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:center }
-    .ops input[type="text"]{min-width:260px; flex:1}
-    .status{font-size:12px; color:#b5ffcf; text-align:center; min-height:16px}
-    th .sort{opacity:.7; font-size:12px; margin-left:2px} th.active{color:#b5ffcf}
-
-    @media (min-width: 1200px){ .preview{ height:clamp(320px, 60vh, 70dvh); } }
-  </style>
-</head>
-<body class="fx-grid">
-
-  <canvas id="c"></canvas>
-
-  <div class="statusbar" id="statusbar">
-    <span class="pill"><span class="led"></span> MIA OPS</span>
-    <span class="pill">v0.28</span>
-    <span class="pill"><span id="modeText">Secure Gate</span></span>
-  </div>
-
-  <!-- 登录 -->
-  <div class="card" id="gate" role="dialog" aria-labelledby="title">
-    <div class="brand"><span class="dot"></span><h1 id="title">OPS 虚拟货架</h1></div>
-    <label for="pwd">ACCESS CODE</label>
-    <div class="row">
-      <input id="pwd" type="password" placeholder="请输入口令…" autocomplete="current-password" />
-      <button id="show" class="btn-ghost" type="button" aria-pressed="false">显示</button>
-      <button id="go" class="btn-primary" type="button">进入</button>
-    </div>
-    <div id="err" class="error" role="alert" style="color:#ff6b6b; font-size:12px; min-height:18px; margin-top:10px; text-shadow:0 0 10px rgba(255,0,0,.25)"></div>
-  </div>
-
-  <!-- 应用 -->
-  <div class="app" id="app">
-    <div class="panel">
-      <div class="grid">
-        <div class="toolbar">
-          <input id="q" type="text" placeholder="搜索编号（空格/逗号分隔多关键字）" />
-          <input id="d1" type="date" aria-label="开始日期">
-          <span>至</span>
-          <input id="d2" type="date" aria-label="结束日期">
-          <button id="clear" class="btn-ghost" type="button">清空筛选</button>
-        </div>
-
-        <div class="preview">
-          <table>
-            <thead>
-              <tr>
-                <th data-key="编号"  style="width:42%; cursor:pointer">运单号 <span class="sort"></span></th>
-                <th data-key="时间"  style="cursor:pointer">操作时间 <span class="sort"></span></th>
-              </tr>
-            </thead>
-            <tbody id="tbody">
-              <tr><td class="empty" colspan="2">暂无数据</td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="ops">
-          <input id="inp" type="text" placeholder="编号可用逗号/空格/换行分隔" spellcheck="false" autocapitalize="off" autocomplete="off" autofocus />
-          <button id="btnAdd" class="btn-primary" type="button">上架</button>
-          <button id="btnDel" class="btn-danger" type="button">下架</button>
-        </div>
-        <div class="status" id="status"></div>
-      </div>
-    </div>
-  </div>
-
 <script>
-/* ========= Matrix 背景 ========= */
+/* ========= Matrix 背景（原样） ========= */
 (()=> {
   const c = document.getElementById('c');
   const x = c.getContext('2d');
@@ -186,7 +34,7 @@
   resize(); draw();
 })();
 
-/* ========= 徽章对齐 ========= */
+/* ========= 徽章对齐（原样） ========= */
 const statusbar = document.getElementById('statusbar');
 function alignBadge(){
   const gate = document.getElementById('gate');
@@ -198,8 +46,7 @@ function alignBadge(){
 addEventListener('resize', alignBadge);
 addEventListener('DOMContentLoaded', alignBadge);
 
-/* ========= 登录（SHA-256） ========= */
-/* ptothez → SHA-256 → c4ea541037f800a6c3ee534e5e29f8b833eaf7a11e6d4281510026dea5abcb30 */
+/* ========= 登录（原样） ========= */
 const h = "c4ea541037f800a6c3ee534e5e29f8b833eaf7a11e6d4281510026dea5abcb30";
 const pwd = document.getElementById('pwd');
 const go  = document.getElementById('go');
@@ -246,10 +93,10 @@ addEventListener('DOMContentLoaded', ()=> pwd.focus());
 
 /* ========= 云端存储（GetPantry） ========= */
 const PANTRY_ID = '492a92b0-9b05-488c-9621-85ef5fd5de61';
-const BASKET    = 'vshelf';          // 如需“换库”，改个名字即可（例如 'vshelf2'）
+const BASKET    = 'vshelf';
 const API       = `https://getpantry.cloud/apiv1/pantry/${PANTRY_ID}/basket/${BASKET}`;
 
-// 同编号是否唯一：true=只保留时间最新的一条；false=允许重复
+/* 重要：为了避免“越下架越多”的视觉错觉，建议设置为 true（同编号只保留时间最新的一条） */
 const UNIQUE_BY_NUMBER = false;
 
 const $ = s => document.querySelector(s);
@@ -258,12 +105,13 @@ const ids = s => (s.toUpperCase().match(/[A-Z0-9]+/g) || []);
 const nowStr = () => { const d=new Date(), p=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`; };
 const wait = ms => new Promise(r=>setTimeout(r,ms));
 
+/* —— 全局串行队列，避免并发写/读竞态 —— */
 let queue = Promise.resolve();
 function enqueue(task){ queue = queue.then(task, task); return queue; }
 
 let CACHE = [];
 
-// —— 去重：同编号只保留时间最新
+/* —— 去重：同编号只保留时间最新 —— */
 function dedupeRows(rows){
   if (!UNIQUE_BY_NUMBER) return rows.slice();
   const newer = (a,b)=> String(a.时间) >= String(b.时间) ? a : b;
@@ -275,15 +123,24 @@ function dedupeRows(rows){
   return [...m.values()];
 }
 
-// —— 429 退避重试
+/* —— 429 退避重试 + 反缓存头 —— */
 async function fetchRetry(url, opts = {}, allow404 = false){
-  let delay = 1500;
-  for (let i = 0; i < 8; i++){
-    const r = await fetch(url, opts).catch(()=>({ ok:false, status:0 }));
+  let delay = 1200;
+  for (let i = 0; i < 7; i++){
+    const r = await fetch(url, {
+      cache: 'no-store',
+      headers: {
+        'Accept': 'application/json',
+        'Pragma': 'no-cache',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        ...(opts.headers||{})
+      },
+      ...opts
+    }).catch(()=>({ ok:false, status:0 }));
     if (r.status === 429){ setStatus(`频率过高，${Math.round(delay/1000)}s 后重试…`); await wait(delay); delay = Math.min(Math.round(delay * 1.8), 12000); continue; }
     if (allow404 && r.status === 404) return r;
     if (!r.ok){
-      if (i === 7){ const txt = await (r.text?.() || ''); throw new Error(`HTTP ${r.status} ${txt}`); }
+      if (i === 6){ const txt = await (r.text?.() || ''); throw new Error(`HTTP ${r.status} ${txt}`); }
       await wait(delay); delay = Math.min(Math.round(delay * 1.8), 12000); continue;
     }
     return r;
@@ -291,8 +148,8 @@ async function fetchRetry(url, opts = {}, allow404 = false){
   throw new Error('网络重试耗尽');
 }
 
-// —— 写频率最小间隔 + 串行
-const WRITE_COOLDOWN_MS = 2000;
+/* —— 写频率节流（冷却） —— */
+const WRITE_COOLDOWN_MS = 1800;
 let lastWriteAt = 0;
 async function ensureCooldown(){
   const now = Date.now();
@@ -301,61 +158,71 @@ async function ensureCooldown(){
   lastWriteAt = Date.now();
 }
 
-// —— 读（加反缓存头）
+/* —— 读（以远端为准，带 cache-bust） —— */
 async function readRows(){
-  const r = await fetchRetry(
-    `${API}?ts=${Date.now()}`,
-    {
-      cache:'no-store',
-      headers:{
-        'Accept':'application/json',
-        'Pragma':'no-cache',
-        'Cache-Control':'no-cache, no-store, must-revalidate'
-      }
-    },
-    true
-  );
+  const r = await fetchRetry(`${API}?ts=${Date.now()}`, {}, true);
   if (r.status === 404) return [];
   const j = await r.json().catch(()=>({ rows:[] }));
   return Array.isArray(j.rows) ? j.rows : [];
 }
 
-// —— 写（统一入口，自动去重/串行/冷却）
-async function writeRowsQueued(rows){
-  const payload = UNIQUE_BY_NUMBER ? dedupeRows(rows) : rows.slice();
+/* ========= 写入 + 回读核验（关键修复） =========
+   把要保存的 rows 全量 PUT 到远端，然后回读检查是否完全一致；
+   若不一致（CDN/并发导致），自动退避重试，确保“真正删除/真正覆盖”。 */
+function normalizeRows(rows){
+  // 稳定排序 + 大写编号，避免序列化差异导致误判
+  const arr = rows.map(r=>({ 编号:String(r.编号||'').toUpperCase(), 时间:String(r.时间||'') }));
+  arr.sort((a,b)=> (a.编号===b.编号) ? a.时间.localeCompare(b.时间) : a.编号.localeCompare(b.编号));
+  return arr;
+}
+function rowsEqual(a,b){
+  const A = JSON.stringify(normalizeRows(a));
+  const B = JSON.stringify(normalizeRows(b));
+  return A === B;
+}
+
+async function commitAndVerify(nextRows, maxRetry = 5){
+  const payload = UNIQUE_BY_NUMBER ? dedupeRows(nextRows) : nextRows.slice();
   const body = JSON.stringify({ rows: payload });
-  await enqueue(async ()=>{
-    await ensureCooldown();
-    let r = await fetchRetry(API, { method:'PUT', headers:{ 'Content-Type':'application/json','Accept':'application/json' }, body });
-    if (r.status === 404 || r.status === 405){
+
+  return enqueue(async ()=>{
+    let attempt = 0, delay = 800;
+    while (true){
       await ensureCooldown();
-      await fetchRetry(API, { method:'POST', headers:{ 'Content-Type':'application/json','Accept':'application/json' }, body });
+      // 尝试 PUT；若篮子不存在（404/405），改用 POST 创建
+      let r = await fetchRetry(API, { method:'PUT', headers:{ 'Content-Type':'application/json','Accept':'application/json' }, body }, true);
+      if (r.status === 404 || r.status === 405){
+        await ensureCooldown();
+        await fetchRetry(API, { method:'POST', headers:{ 'Content-Type':'application/json','Accept':'application/json' }, body });
+      }
+      // 回读核验
+      await ensureCooldown();
+      const remote = await readRows();
+      const ok = rowsEqual(payload, remote);
+      if (ok){
+        CACHE = payload.slice();
+        return true;
+      }
+      if (attempt++ >= maxRetry) throw new Error('写入后核验失败（可能有他端在同时写入），请稍后再试或更换篮子名。');
+      setStatus(`远端尚未一致，重试第 ${attempt}/${maxRetry} 次…`);
+      await wait(delay); delay = Math.min(delay*1.8, 6000);
     }
   });
 }
 
-// —— 删除篮子 & 硬清空
+/* —— 删除篮子（CleanAll 用） —— */
 async function deleteBasket(){
   await ensureCooldown();
   await fetchRetry(API, { method:'DELETE' }, true); // 200/204/404 都视为成功
 }
-async function hardClearAll(){
-  await deleteBasket();
-  await ensureCooldown();
-  await fetchRetry(API, {
-    method:'POST',
-    headers:{ 'Content-Type':'application/json','Accept':'application/json' },
-    body: JSON.stringify({ rows: [] })
-  });
-}
 
-// —— 以远端为准（并去重）
+/* —— 以远端为准（并去重） —— */
 async function fetchAllFromServer(){
   const remote = await enqueue(()=>readRows());
   CACHE = UNIQUE_BY_NUMBER ? dedupeRows(remote) : remote.slice();
 }
 
-/* ========= 搜索/筛选/排序 ========= */
+/* ========= 搜索/筛选/排序（原样） ========= */
 const state = { sortKey:'时间', sortDir:'desc', q:'', d1:null, d2:null };
 const parseTime = s => { if(!s) return null; const d=new Date(s.replace(' ','T')); return isNaN(d)?null:d; };
 const matchKeywords = (no,q)=>{ if(!q) return true; const tokens=q.toUpperCase().split(/[,\s]+/).filter(Boolean); const S=String(no||'').toUpperCase(); return tokens.every(tok=>S.includes(tok)); };
@@ -399,7 +266,7 @@ function render(){
   });
 }
 
-/* ========= 输入框：回车不触发 ========= */
+/* ========= 输入框：回车不触发（原样） ========= */
 const inp = document.getElementById('inp');
 addEventListener('DOMContentLoaded', () => {
   if (inp) inp.focus();
@@ -407,7 +274,7 @@ addEventListener('DOMContentLoaded', () => {
 });
 inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') e.preventDefault(); });
 
-/* ========= 工具条 & 排序 ========= */
+/* ========= 工具条 & 排序（原样） ========= */
 const qInput = document.getElementById('q'), d1Input = document.getElementById('d1'), d2Input = document.getElementById('d2'), clearBtn = document.getElementById('clear');
 let qTimer = null;
 qInput.addEventListener('input', ()=>{ clearTimeout(qTimer); qTimer = setTimeout(()=>{ state.q = qInput.value.trim(); render(); }, 200); });
@@ -423,7 +290,7 @@ document.querySelectorAll('th[data-key]').forEach(th=>{
   });
 });
 
-/* ========= 上/下架（只绑定一次） ========= */
+/* ========= 上/下架（修复：写入后核验） ========= */
 const btnAdd = document.getElementById('btnAdd');
 const btnDel = document.getElementById('btnDel');
 
@@ -436,24 +303,19 @@ async function safeRun(btn, fn){
 if (!window.__vShelfBound){
   window.__vShelfBound = true;
 
-  // 上架
+  // 上架（新增）
   btnAdd.addEventListener('click', ()=> safeRun(btnAdd, async ()=>{
     const raw = (inp.value||'').trim();
     if(!raw) return;
 
-    // 硬清空
+    // 硬清空（真正清到篮子级别）
     if (raw.toLowerCase() === 'cleanall'){
       if (!confirm('确定要清空所有记录吗？此操作不可撤销。')) return;
-      setStatus('正在硬清空（DELETE 篮子 → POST 空对象）…');
+      setStatus('正在硬清空（DELETE 篮子）…');
       try{
-        await hardClearAll();
+        await enqueue(async ()=>{ await deleteBasket(); });
         CACHE = []; render();
-        await fetchAllFromServer(); render();
-        if (CACHE.length > 0){
-          setStatus('注意：发现其它客户端写回了旧数据，请让他们刷新后再清空，或临时更换篮子名。');
-        }else{
-          setStatus('表格已清空');
-        }
+        setStatus('表格已清空；如需避免他端写回旧数据，可临时更换 BASKET 名。');
       }catch(e){ console.error(e); setStatus('清空失败：'+(e?.message||e)); }
       inp.value='';
       return;
@@ -467,14 +329,12 @@ if (!window.__vShelfBound){
     for(const n of arr) draft.push({ 编号:String(n).toUpperCase(), 时间:t });
     draft = UNIQUE_BY_NUMBER ? dedupeRows(draft) : draft;
 
-    await writeRowsQueued(draft);
-    CACHE = draft; render();
-
+    await commitAndVerify(draft);
     inp.value=''; setStatus(`已新增 ${arr.length} 条，现有 ${CACHE.length} 条`);
-    inp.focus();
+    render(); inp.focus();
   }));
 
-  // 下架
+  // 下架（删除所填编号的全部记录）
   btnDel.addEventListener('click', ()=> safeRun(btnDel, async ()=>{
     const raw = (inp.value||'').trim();
     if(!raw) return;
@@ -486,13 +346,9 @@ if (!window.__vShelfBound){
     let draft = CACHE.filter(r => !set.has(String(r.编号).toUpperCase()));
     draft = UNIQUE_BY_NUMBER ? dedupeRows(draft) : draft;
 
-    await writeRowsQueued(draft);
-    CACHE = draft; render();
-
-    inp.value=''; setStatus(`已下架，现有 ${CACHE.length} 条`);
-    inp.focus();
+    await commitAndVerify(draft);
+    inp.value=''; setStatus(`已下架（共移除 ${arr.length} 个编号的记录），现有 ${CACHE.length} 条`);
+    render(); inp.focus();
   }));
 }
 </script>
-</body>
-</html>
