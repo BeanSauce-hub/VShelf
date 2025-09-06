@@ -10,46 +10,23 @@
     html,body{margin:0;height:100%;background:transparent;overflow:hidden;}
     body{ display:grid;place-items:center;position:relative;color:var(--fg);
       font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace }
-
-    /* 背景画布（矩阵雨在脚本里） */
     #c{position:fixed;inset:0;z-index:0;display:block}
-
-    /* 科技感网格与扫描线 */
     .fx-grid::before,.fx-grid::after{ content:""; position:fixed; inset:0; pointer-events:none; z-index:0; }
-    .fx-grid::before{
-      background:
-        linear-gradient(transparent 95%, rgba(0,0,0,.35) 100%) 0 0/100% 2px,
-        linear-gradient(90deg, rgba(0,0,0,.35) 1px, transparent 1px) 0 0/2px 100%;
-      mix-blend-mode:soft-light;
-    }
+    .fx-grid::before{ background: linear-gradient(transparent 95%, rgba(0,0,0,.35) 100%) 0 0/100% 2px, linear-gradient(90deg, rgba(0,0,0,.35) 1px, transparent 1px) 0 0/2px 100%; mix-blend-mode:soft-light; }
     .fx-grid::after{ background:linear-gradient(to bottom, rgba(0,255,102,.06), transparent 60%); animation:scan 6s linear infinite; mix-blend-mode:overlay; }
-    @keyframes scan{0%{transform:translateY(-100%)}100%{transform:translateY(100%)}}
-
-    /* 玻璃卡片（Gate & Panel） */
-    .card,.panel{ position:relative; z-index:1; border-radius:18px;
-      background:linear-gradient(180deg, rgba(12,18,16,.58), rgba(6,10,8,.58));
-      backdrop-filter:blur(10px);
-      border:1px solid var(--neo-dim);
-      box-shadow:0 0 0 1px rgba(0,255,102,.08) inset, 0 12px 40px rgba(0,0,0,.55), 0 0 24px rgba(0,255,102,.06);
-    }
+    @keyframes scan{0%{transform:translateY(-100%)}100%{transform:translateY(100%)} }
+    .card,.panel{ position:relative; z-index:1; border-radius:18px; background:linear-gradient(180deg, rgba(12,18,16,.58), rgba(6,10,8,.58)); backdrop-filter:blur(10px); border:1px solid var(--neo-dim); box-shadow:0 0 0 1px rgba(0,255,102,.08) inset, 0 12px 40px rgba(0,0,0,.55), 0 0 24px rgba(0,255,102,.06); }
     .card{width:min(92vw, 460px); padding:28px 24px 22px;}
     .brand{display:flex;align-items:center;gap:10px;margin-bottom:12px; letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--fg)}
     .dot{width:9px;height:9px;border-radius:50%;background:var(--neo);box-shadow:0 0 14px var(--neo)}
     h1,h2{margin:0}
     h1{font-size:18px;opacity:.9}
     h2{font-size:clamp(22px, 3.5vw, 28px); letter-spacing:.06em; text-align:center; margin-bottom:10px}
-
     label{display:block;font-size:12px;color:#b5ffcf;margin:14px 0 6px;letter-spacing:.06em}
     .row{display:flex;gap:8px}
-    input[type="password"], input[type="text"]{
-      flex:1; padding:12px 12px 12px 14px; border-radius:12px; outline:none; color:var(--fg);
-      background:rgba(3,7,5,.55); border:1px solid rgba(0,255,102,.18);
-      box-shadow:inset 0 0 0 1px rgba(0,255,102,.08);
-      transition:border-color .2s, box-shadow .2s, background .2s;
-    }
+    input[type="password"], input[type="text"]{ flex:1; padding:12px 12px 12px 14px; border-radius:12px; outline:none; color:var(--fg); background:rgba(3,7,5,.55); border:1px solid rgba(0,255,102,.18); box-shadow:inset 0 0 0 1px rgba(0,255,102,.08); transition:border-color .2s, box-shadow .2s, background .2s; }
     input::placeholder{color:#8bd6a8}
     input:focus{border-color:var(--neo); box-shadow:0 0 0 3px rgba(0,255,102,.18), inset 0 0 0 1px rgba(0,255,102,.18); background:rgba(3,7,5,.7)}
-
     button{ padding:12px 14px;border:0;border-radius:12px;cursor:pointer; font-weight:800; letter-spacing:.06em; transition:transform .08s ease, box-shadow .2s ease, background .2s ease; white-space:nowrap; color:#000; }
     .btn-ghost{background:rgba(0,0,0,.35); color:#c7ffe0; border:1px solid rgba(0,255,102,.22)}
     .btn-ghost[aria-pressed="true"]{background:rgba(0,255,102,.12)}
@@ -58,52 +35,36 @@
     button:hover{filter:brightness(1.05)}
     button:active{transform:translateY(1px) scale(.99)}
     button:disabled{opacity:.5;cursor:not-allowed;box-shadow:none!important}
-
-    /* 顶部状态条（left/transform 交给 JS 动态设置） */
     .statusbar{ position:fixed; top:12px; display:flex; gap:10px; z-index:1; font-size:12px; color:#b5ffcf; background:rgba(0,0,0,.35); border:1px solid rgba(0,255,102,.18); padding:6px 10px; border-radius:999px; backdrop-filter:blur(6px) }
     .pill{display:flex;align-items:center;gap:6px}
     .led{width:6px;height:6px;border-radius:50%;background:var(--neo);box-shadow:0 0 10px var(--neo)}
-
-    /* ===== 应用区（登录后） ===== */
     .app{ display:none; position:relative; z-index:1; width:100%; min-height:100svh; padding:24px; overflow:auto; place-items:center; justify-items:center; }
     @supports (height: 100dvh){ .app{ min-height:100dvh; } }
     .panel{ width:min(96vw,1100px); padding:22px 20px; margin:auto; }
     .grid{ display:grid; grid-template-columns:1fr; gap:14px; }
-
-    /* 工具条 */
     .toolbar{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:center; margin-bottom:6px }
     .toolbar input[type="text"], .toolbar input[type="date"]{ padding:10px 12px; border-radius:10px; border:1px solid rgba(0,255,102,.18); background:rgba(3,7,5,.45); color:var(--fg); outline:none }
-
-    /* 预览窗 */
     .preview{ height:clamp(280px, 58vh, 72dvh); min-height:260px; background:rgba(255,255,255,.06); border:1px solid rgba(0,255,102,.18); border-radius:12px; overflow:auto; padding:10px }
     @supports (height: 1dvh){ .preview{ height:clamp(280px, 58dvh, 72dvh); } }
-
     table{width:100%; border-collapse:collapse; font-size:13px; color:#eafaea}
     thead th{position:sticky; top:0; background:rgba(0,0,0,.35); border-bottom:1px solid rgba(0,255,102,.18); text-align:center; padding:8px}
     tbody td{padding:8px; border-bottom:1px solid rgba(255,255,255,.06); white-space:nowrap; text-align:center; color:#e7ffee}
     .empty{color:#95c7ab; padding:18px 8px; text-align:center}
-
     .ops{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:center }
     .ops input[type="text"]{min-width:260px; flex:1}
     .status{font-size:12px; color:#b5ffcf; text-align:center; min-height:16px}
-
-    /* 排序指示 */
     th .sort{opacity:.7; font-size:12px; margin-left:2px}
     th.active{color:#b5ffcf}
-
     @media (min-width: 1200px){ .preview{ height:clamp(320px, 60vh, 70dvh); } }
   </style>
 </head>
 <body class="fx-grid">
   <canvas id="c"></canvas>
-
   <div class="statusbar" id="statusbar">
     <span class="pill"><span class="led"></span> MIA OPS</span>
-    <span class="pill">v0.34</span>
+    <span class="pill">v0.2</span>
     <span class="pill"><span id="modeText">Secure Gate</span></span>
   </div>
-
-  <!-- 登录卡片（Gate） -->
   <div class="card" id="gate" role="dialog" aria-labelledby="title">
     <div class="brand"><span class="dot"></span><h1 id="title">OPS 虚拟货架</h1></div>
     <label for="pwd">ACCESS CODE</label>
@@ -114,12 +75,9 @@
     </div>
     <div id="err" class="error" role="alert" style="color:#ff6b6b; font-size:12px; min-height:18px; margin-top:10px; text-shadow:0 0 10px rgba(255,0,0,.25)"></div>
   </div>
-
-  <!-- 应用区：上/下架 + 工具条 + 预览 -->
   <div class="app" id="app">
     <div class="panel">
       <div class="grid">
-
         <div class="toolbar">
           <input id="q" type="text" placeholder="搜索编号（空格/逗号分隔多关键字）" />
           <input id="d1" type="date" aria-label="开始日期">
@@ -127,13 +85,12 @@
           <input id="d2" type="date" aria-label="结束日期">
           <button id="clear" class="btn-ghost" type="button">清空筛选</button>
         </div>
-
         <div class="preview">
           <table>
             <thead>
               <tr>
-                <th data-key="编号"  style="width:42%; cursor:pointer">运单号 <span class="sort"></span></th>
-                <th data-key="时间"  style="cursor:pointer">操作时间 <span class="sort"></span></th>
+                <th data-key="编号" style="width:42%; cursor:pointer">运单号 <span class="sort"></span></th>
+                <th data-key="时间" style="cursor:pointer">操作时间 <span class="sort"></span></th>
               </tr>
             </thead>
             <tbody id="tbody">
@@ -141,267 +98,162 @@
             </tbody>
           </table>
         </div>
-
         <div class="ops">
           <input id="inp" type="text" placeholder="编号可用逗号/空格/换行分隔" spellcheck="false" autocapitalize="off" autocomplete="off" autofocus />
           <button id="btnAdd" class="btn-primary" type="button">上架</button>
           <button id="btnDel" class="btn-danger" type="button">下架</button>
         </div>
         <div class="status" id="status"></div>
-
       </div>
     </div>
   </div>
-
 <script>
-/* ========== Matrix 背景 ========== */
-(()=> {
-  const c = document.getElementById('c');
-  const x = c.getContext('2d');
-  const CH = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const FS = 16, COLOR = "rgba(0,255,102,0.3)";
-  let dpr=1, cols=0, drops=[];
-  function resize(){
-    dpr = Math.max(1, window.devicePixelRatio || 1);
-    const w = innerWidth, h = innerHeight;
-    c.width = Math.floor(w * dpr);
-    c.height = Math.floor(h * dpr);
-    x.setTransform(dpr,0,0,dpr,0,0);
-    x.font = `${FS}px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`;
-    x.textBaseline = "top";
-    cols = Math.floor(w / FS);
-    drops = Array(cols).fill(0);
-    x.fillStyle = "#000"; x.fillRect(0,0,w,h);
-  }
-  function draw(){
-    x.fillStyle = "rgba(0,0,0,0.07)";
-    x.fillRect(0,0,innerWidth,innerHeight);
-    x.fillStyle = COLOR;
-    for(let i=0;i<cols;i++){
-      const ch = CH[(Math.random()*CH.length)|0];
-      const xPos = i * FS, yPos = drops[i] * FS;
-      x.fillText(ch, xPos, yPos);
-      if (yPos > innerHeight && Math.random() > 0.975) drops[i]=0; else drops[i]++;
-    }
-    requestAnimationFrame(draw);
-  }
-  addEventListener('resize', resize);
-  resize(); draw();
-})();
+/* Matrix Rain */
+(()=>{const c=document.getElementById('c');const x=c.getContext('2d');const CH="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";const FS=16,COLOR="rgba(0,255,102,0.3)";let dpr=1,cols=0,drops=[];function resize(){dpr=Math.max(1,window.devicePixelRatio||1);const w=innerWidth,h=innerHeight;c.width=Math.floor(w*dpr);c.height=Math.floor(h*dpr);x.setTransform(dpr,0,0,dpr,0,0);x.font=`${FS}px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`;x.textBaseline="top";cols=Math.floor(w/FS);drops=Array(cols).fill(0);x.fillStyle="#000";x.fillRect(0,0,w,h);}function draw(){x.fillStyle="rgba(0,0,0,0.07)";x.fillRect(0,0,innerWidth,innerHeight);x.fillStyle=COLOR;for(let i=0;i<cols;i++){const ch=CH[(Math.random()*CH.length)|0];const xPos=i*FS,yPos=drops[i]*FS;x.fillText(ch,xPos,yPos);if(yPos>innerHeight&&Math.random()>0.975)drops[i]=0;else drops[i]++;}requestAnimationFrame(draw);}addEventListener('resize',resize);resize();draw();})();
+/* 顶部徽章 */
+const statusbar=document.getElementById('statusbar');const gate=document.getElementById('gate');const app=document.getElementById('app');function alignBadge(){const target=(getComputedStyle(gate).display!=='none')?gate:(document.querySelector('.panel')||gate);const r=target.getBoundingClientRect();statusbar.style.left=(r.left+r.width/2)+'px';statusbar.style.transform='translateX(-50%)';}window.addEventListener('resize',alignBadge);window.addEventListener('DOMContentLoaded',alignBadge);
+/* 登录 */
+const h="c4ea541037f800a6c3ee534e5e29f8b833eaf7a11e6d4281510026dea5abcb30";const pwd=document.getElementById('pwd');const go=document.getElementById('go');const err=document.getElementById('err');const showBtn=document.getElementById('show');async function sha256(msg){const buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(msg));return[...new Uint8Array(buf)].map(x=>x.toString(16).padStart(2,"0")).join("");}async function enter(){err.textContent="";const v=(pwd.value||"").trim();if(!v){err.textContent="请先输入密码";return;}try{const hash=await sha256(v);if(hash!==h){err.textContent="密码不正确";pwd.focus();pwd.select();return;}}catch(e){err.textContent="当前环境不支持安全校验（WebCrypto）。请用 https/本地服务器打开。";return;}gate.style.display="none";app.style.display="grid";document.body.style.overflow="hidden";document.getElementById('modeText').textContent='Virtual Shelf';alignBadge();}showBtn.addEventListener('click',()=>{const showing=pwd.type==="text";pwd.type=showing?"password":"text";showBtn.textContent=showing?"显示":"隐藏";showBtn.setAttribute('aria-pressed',String(!showing));pwd.focus();});go.addEventListener('click',()=>enter());pwd.addEventListener('keydown',e=>{if(e.key==="Enter")enter();});window.addEventListener('DOMContentLoaded',()=>pwd.focus());
+/* ===== Pantry API（如遇CORS，请用你的CF Worker域名替换 API_BASE） ===== */
+const PANTRY_ID='492a92b0-9b05-488c-9621-85ef5fd5de61';
+const BASKET='vshelf';
+const API_BASE='https://getpantry.cloud'; // 例如 'https://vshelf-cors.yourname.workers.dev'
+const API=`${API_BASE}/apiv1/pantry/${PANTRY_ID}/basket/${BASKET}`;
 
-/* ========== 对齐徽章到当前中心容器 ========== */
-const statusbar = document.getElementById('statusbar');
-const gate = document.getElementById('gate');
-const app  = document.getElementById('app');
-function alignBadge(){
-  const target = (getComputedStyle(gate).display !== 'none') ? gate : (document.querySelector('.panel') || gate);
-  const r = target.getBoundingClientRect();
-  statusbar.style.left = (r.left + r.width / 2) + 'px';
-  statusbar.style.transform = 'translateX(-50%)';
-}
-window.addEventListener('resize', alignBadge);
-window.addEventListener('DOMContentLoaded', alignBadge);
+/* 内存快照 */
+window.__CACHE__=[];
 
-/* ========== 登录逻辑（SHA-256 哈希比对） ========== */
-/* ptothez → SHA-256 → c4ea541037f800a6c3ee534e5e29f8b833eaf7a11e6d4281510026dea5abcb30 */
-const h = "c4ea541037f800a6c3ee534e5e29f8b833eaf7a11e6d4281510026dea5abcb30";
-const pwd = document.getElementById('pwd');
-const go  = document.getElementById('go');
-const err = document.getElementById('err');
-const showBtn = document.getElementById('show');
-async function sha256(msg){
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(msg));
-  return [...new Uint8Array(buf)].map(x=>x.toString(16).padStart(2,"0")).join("");
+/* 强化错误文本 */
+const friendlyErr=(e)=>{
+  const s=String(e||'');
+  return s.startsWith('Error: ') ? s.slice(7) : s;
 }
-async function enter(){
-  err.textContent="";
-  const v=(pwd.value||"").trim();
-  if(!v){ err.textContent="请先输入密码"; return; }
+
+/* 远端读写（统一 {rows:[...]} 结构） */
+async function netLoad(){
+  const r=await fetch(API,{cache:'no-store'});
+  if(!r.ok){const msg=await r.text().catch(()=> '');throw new Error(`HTTP ${r.status} ${r.statusText} | ${msg}`);}
+  const json=await r.json();
+  if(Array.isArray(json))return json;
+  if(json&&Array.isArray(json.rows))return json.rows;
+  if(json&&Array.isArray(json.data))return json.data;
+  return [];
+}
+async function netSave(arr){
+  const payload={rows:Array.isArray(arr)?arr:[]};
+  const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  if(!r.ok){const msg=await r.text().catch(()=> '');throw new Error(`HTTP ${r.status} ${r.statusText} | ${msg}`);} 
+}
+function load(){return window.__CACHE__||[];}
+function save(a){window.__CACHE__=Array.isArray(a)?a:[];netSave(window.__CACHE__).catch(err=>{setStatus('远端保存失败：'+friendlyErr(err));});}
+let __syncing=false;
+async function syncFromRemote(initial=false){
+  if(__syncing) return; __syncing=true;
   try{
-    const hash = await sha256(v);
-    if(hash !== h){ err.textContent="密码不正确"; pwd.focus(); pwd.select(); return; }
-  }catch(e){ err.textContent = "当前环境不支持安全校验（WebCrypto）。请用 https/本地服务器打开。"; return; }
-  gate.style.display="none";
-  app.style.display="grid";
-  document.body.style.overflow = "hidden";
-  document.getElementById('modeText').textContent = 'Virtual Shelf';
-  alignBadge();
+    const remote=await netLoad();
+    const changed=JSON.stringify(remote)!==JSON.stringify(window.__CACHE__||[]);
+    if(changed||initial){ window.__CACHE__=remote; render(); if(!initial&&changed) setStatus('已从服务器同步'); }
+  }catch(e){ if(initial){ render(); setStatus('远端不可用：'+friendlyErr(e)); } }
+  finally{ __syncing=false; }
 }
-showBtn.addEventListener('click', ()=>{
-  const showing = pwd.type==="text";
-  pwd.type = showing? "password":"text";
-  showBtn.textContent = showing? "显示":"隐藏";
-  showBtn.setAttribute('aria-pressed', String(!showing));
-  pwd.focus();
-});
-go.addEventListener('click', ()=>enter());
-pwd.addEventListener('keydown', e=>{ if(e.key==="Enter") enter(); });
-window.addEventListener('DOMContentLoaded', ()=> pwd.focus());
 
-/* ========== 工具函数与状态 ========== */
-const ALLOW_DUPLICATES = true;  // 允许重复
-const $ = s => document.querySelector(s);
-const setStatus = t => { $('#status').textContent = t || '' };
-// 允许大写英文与数字，自动转大写
-const ids = s => (s.toUpperCase().match(/[A-Z0-9]+/g) || []);
-const nowStr = () => {
-  const d=new Date(), p=n=>String(n).padStart(2,'0');
-  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
-};
-
-/* ====== 搜索/筛选/排序状态 ====== */
-const state = { sortKey: '时间', sortDir: 'desc', q: '', d1: null, d2: null };
-const parseTime = (s) => { if(!s) return null; const t = s.replace(' ', 'T'); const d = new Date(t); return isNaN(d) ? null : d; };
-const matchKeywords = (no, q) => { if(!q) return true; const tokens = q.toUpperCase().split(/[\,\s]+/).filter(Boolean); const S = String(no||'').toUpperCase(); return tokens.every(tok => S.includes(tok)); };
-const inDateRange = (timeStr, d1, d2) => {
-  if(!d1 && !d2) return true;
-  const d = parseTime(timeStr); if(!d) return false;
-  if(d1 && d < d1) return false;
-  if(d2){ const d2end = new Date(d2.getFullYear(), d2.getMonth(), d2.getDate(), 23,59,59,999); if(d > d2end) return false; }
-  return true;
-};
+/* 工具函数与筛选排序 */
+const ALLOW_DUPLICATES=true;  // 允许重复
+const $=s=>document.querySelector(s);
+const setStatus=t=>{ $('#status').textContent=t||'' };
+const ids=s=>(s.toUpperCase().match(/[A-Z0-9]+/g)||[]);
+const nowStr=()=>{ const d=new Date(), p=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`; };
+const state={ sortKey:'时间', sortDir:'desc', q:'', d1:null, d2:null };
+const parseTime=s=>{ if(!s) return null; const t=s.replace(' ','T'); const d=new Date(t); return isNaN(d)?null:d; };
+const matchKeywords=(no,q)=>{ if(!q) return true; const tokens=q.toUpperCase().split(/[\,\s]+/).filter(Boolean); const S=String(no||'').toUpperCase(); return tokens.every(tok=>S.includes(tok)); };
+const inDateRange=(timeStr,d1,d2)=>{ if(!d1&&!d2) return true; const d=parseTime(timeStr); if(!d) return false; if(d1&&d<d1) return false; if(d2){ const d2end=new Date(d2.getFullYear(), d2.getMonth(), d2.getDate(), 23,59,59,999); if(d>d2end) return false; } return true; };
 function applyFilterSort(data){
-  const filtered = data.filter(r => matchKeywords(r.编号, state.q) && inDateRange(r.时间, state.d1, state.d2));
-  const key = state.sortKey; const dir = state.sortDir === 'asc' ? 1 : -1;
+  const filtered=data.filter(r=>matchKeywords(r.编号,state.q)&&inDateRange(r.时间,state.d1,state.d2));
+  const key=state.sortKey; const dir=state.sortDir==='asc'?1:-1;
   filtered.sort((a,b)=>{
-    if(key === '时间'){
-      const da = parseTime(a.时间), db = parseTime(b.时间);
-      if(!da && !db) return 0; if(!da) return 1; if(!db) return -1; return (da - db) * dir;
-    }else{ const sa = String(a.编号||''), sb = String(b.编号||''); return sa.localeCompare(sb, 'zh-Hans-CN') * dir; }
+    if(key==='时间'){
+      const da=parseTime(a.时间), db=parseTime(b.时间);
+      if(!da&&!db) return 0; if(!da) return 1; if(!db) return -1; return (da-db)*dir;
+    }else{ const sa=String(a.编号||''), sb=String(b.编号||''); return sa.localeCompare(sb,'zh-Hans-CN')*dir; }
   });
   return filtered;
 }
 
-/* ====== 扫描枪友好（识别输入速度） ====== */
-const inp = document.getElementById('inp');
-let lastKeyTime = 0; const SCAN_THRESHOLD = 120; // ms
-window.addEventListener('DOMContentLoaded', () => {
-  if (inp) inp.focus();
-  setInterval(() => { if (document.activeElement !== inp) inp.focus(); }, 2000);
-});
-inp.addEventListener('keydown', (e) => { if (e.key !== 'Enter') lastKeyTime = Date.now(); });
-inp.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') {
-    const delta = Date.now() - lastKeyTime;
-    if (delta < SCAN_THRESHOLD) { e.preventDefault(); document.getElementById('btnAdd').click(); }
-  }
-});
-
-/* ====== 渲染 ====== */
+/* 渲染 */
 function render(){
-  const data = load();
-  const rows = applyFilterSort(data);
-  const tb = document.getElementById('tbody');
-  tb.innerHTML = '';
-  if(!rows.length){
-    tb.innerHTML = `<tr><td class="empty" colspan="2">无匹配数据</td></tr>`;
-    setStatus(state.q || state.d1 || state.d2 ? '已应用筛选' : '');
-  }else{
-    const frag = document.createDocumentFragment();
+  const data=load();
+  const rows=applyFilterSort(data);
+  const tb=document.getElementById('tbody');
+  tb.innerHTML='';
+  if(!rows.length){ tb.innerHTML=`<tr><td class="empty" colspan="2">无匹配数据</td></tr>`; setStatus(state.q||state.d1||state.d2?'已应用筛选':''); }
+  else{
+    const frag=document.createDocumentFragment();
     for(const r of rows){
-      const tr = document.createElement('tr');
-      const td1 = document.createElement('td'); td1.textContent = r.编号 ?? '';
-      const td2 = document.createElement('td'); td2.textContent = r.时间 ?? '';
-      tr.append(td1, td2); frag.appendChild(tr);
+      const tr=document.createElement('tr');
+      const td1=document.createElement('td'); td1.textContent=r.编号??'';
+      const td2=document.createElement('td'); td2.textContent=r.时间??'';
+      tr.append(td1,td2); frag.appendChild(tr);
     }
     tb.appendChild(frag);
-    setStatus(`共 ${rows.length} 条${(rows.length !== data.length) ? `（已筛选）` : ''}`);
+    setStatus(`共 ${rows.length} 条${(rows.length!==data.length)?`（已筛选）`:''}`);
   }
   document.querySelectorAll('th[data-key]').forEach(th=>{
     th.classList.toggle('active', th.dataset.key===state.sortKey);
-    const sp = th.querySelector('.sort');
-    sp.textContent = (th.dataset.key===state.sortKey) ? (state.sortDir==='asc'?'▲':'▼') : '';
+    const sp=th.querySelector('.sort');
+    sp.textContent=(th.dataset.key===state.sortKey)?(state.sortDir==='asc'?'▲':'▼'):'';
   });
 }
 
-/* ====== 绑定工具条与表头事件 ====== */
-const qInput = document.getElementById('q');
-const d1Input = document.getElementById('d1');
-const d2Input = document.getElementById('d2');
-const clearBtn = document.getElementById('clear');
-let qTimer = null;
-qInput.addEventListener('input', ()=>{ clearTimeout(qTimer); qTimer = setTimeout(()=>{ state.q = qInput.value.trim(); render(); }, 200); });
-d1Input.addEventListener('change', ()=>{ state.d1 = d1Input.value ? new Date(d1Input.value + 'T00:00:00') : null; render(); });
-d2Input.addEventListener('change', ()=>{ state.d2 = d2Input.value ? new Date(d2Input.value + 'T00:00:00') : null; render(); });
-clearBtn.addEventListener('click', ()=>{ qInput.value = ''; d1Input.value=''; d2Input.value=''; state.q=''; state.d1=null; state.d2=null; render(); });
+/* 工具条与表头事件 */
+const qInput=document.getElementById('q');
+const d1Input=document.getElementById('d1');
+const d2Input=document.getElementById('d2');
+const clearBtn=document.getElementById('clear');
+let qTimer=null;
+qInput.addEventListener('input',()=>{ clearTimeout(qTimer); qTimer=setTimeout(()=>{ state.q=qInput.value.trim(); render(); },200); });
+d1Input.addEventListener('change',()=>{ state.d1=d1Input.value?new Date(d1Input.value+'T00:00:00'):null; render(); });
+d2Input.addEventListener('change',()=>{ state.d2=d2Input.value?new Date(d2Input.value+'T00:00:00'):null; render(); });
+clearBtn.addEventListener('click',()=>{ qInput.value=''; d1Input.value=''; d2Input.value=''; state.q=''; state.d1=null; state.d2=null; render(); });
 
 document.querySelectorAll('th[data-key]').forEach(th=>{
-  th.addEventListener('click', ()=>{
-    const key = th.dataset.key;
-    if(state.sortKey === key){ state.sortDir = (state.sortDir === 'asc') ? 'desc' : 'asc'; }
-    else { state.sortKey = key; state.sortDir = (key === '时间') ? 'desc' : 'asc'; }
+  th.addEventListener('click',()=>{
+    const key=th.dataset.key;
+    if(state.sortKey===key){ state.sortDir=(state.sortDir==='asc')?'desc':'asc'; }
+    else{ state.sortKey=key; state.sortDir=(key==='时间')?'desc':'asc'; }
     render();
   });
 });
 
-/* ====== Pantry：仅远端读写（不使用 localStorage） ====== */
-const PANTRY_ID = '492a92b0-9b05-488c-9621-85ef5fd5de61';
-const BASKET    = 'vshelf';
-const API       = `https://getpantry.cloud/apiv1/pantry/${PANTRY_ID}/basket/${BASKET}`;
-window.__CACHE__ = [];
-async function netLoad(){
-  const r = await fetch(API, { cache: 'no-store' });
-  if(!r.ok) throw new Error('远端读取失败');
-  const json = await r.json();
-  return Array.isArray(json) ? json : [];
-}
-async function netSave(arr){
-  const r = await fetch(API, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(Array.isArray(arr)?arr:[]) });
-  if(!r.ok) throw new Error('远端保存失败');
-}
-function load(){ return window.__CACHE__ || []; }
-function save(a){ window.__CACHE__ = Array.isArray(a)?a:[]; netSave(window.__CACHE__).catch(()=> setStatus('远端保存失败')); }
-let __syncing = false;
-async function syncFromRemote(initial=false){
-  if(__syncing) return; __syncing = true;
-  try{
-    const remote = await netLoad();
-    const changed = JSON.stringify(remote) !== JSON.stringify(window.__CACHE__||[]);
-    if(changed || initial){ window.__CACHE__ = remote; render(); if(!initial && changed) setStatus('已从服务器同步'); }
-  }catch(e){ if(initial){ render(); setStatus('远端不可用'); } }
-  finally{ __syncing = false; }
-}
+/* 扫描枪友好 */
+const inp=document.getElementById('inp');
+let lastKeyTime=0; const SCAN_THRESHOLD=120;
+window.addEventListener('DOMContentLoaded',()=>{ if(inp) inp.focus(); setInterval(()=>{ if(document.activeElement!==inp) inp.focus(); },2000); });
+inp.addEventListener('keydown',(e)=>{ if(e.key!=='Enter') lastKeyTime=Date.now(); });
+inp.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ const delta=Date.now()-lastKeyTime; if(delta<SCAN_THRESHOLD){ e.preventDefault(); document.getElementById('btnAdd').click(); } } });
 
-/* ====== 上/下架操作 ====== */
-document.getElementById('btnAdd').addEventListener('click', ()=>{
-  const raw = (inp.value||'').trim();
-  if(!raw) return;
-  if(raw.toLowerCase()==='cleanall'){
-    save([]); syncFromRemote(); inp.value=''; render(); setStatus('表格已清空'); inp.focus(); return;
-  }
-  const arr = ids(raw);
-  if(arr.length===0){ setStatus('未识别到任何编号'); inp.focus(); return; }
-  const t = nowStr();
-  let data = load();
+/* 上/下架操作 */
+document.getElementById('btnAdd').addEventListener('click',()=>{
+  const raw=(inp.value||'').trim(); if(!raw) return;
+  if(raw.toLowerCase()==='cleanall'){ save([]); syncFromRemote(); inp.value=''; render(); setStatus('表格已清空'); inp.focus(); return; }
+  const arr=ids(raw); if(arr.length===0){ setStatus('未识别到任何编号'); inp.focus(); return; }
+  const t=nowStr(); let data=load();
   if(ALLOW_DUPLICATES){ for(const n of arr) data.push({ 编号:String(n), 时间:t }); }
-  else { const map = new Map(data.map(r => [String(r.编号), r])); for(const n of arr) map.set(String(n), { 编号:String(n), 时间:t }); data = [...map.values()]; }
-  save(data);
-  inp.value='';
-  render(); setStatus(`已新增 ${arr.length} 条，现有 ${data.length} 条`);
-  syncFromRemote();
-  inp.focus();
+  else{ const map=new Map(data.map(r=>[String(r.编号), r])); for(const n of arr) map.set(String(n), { 编号:String(n), 时间:t }); data=[...map.values()]; }
+  save(data); inp.value=''; render(); setStatus(`已新增 ${arr.length} 条，现有 ${data.length} 条`); syncFromRemote(); inp.focus();
 });
 
-document.getElementById('btnDel').addEventListener('click', ()=>{
-  const raw = (inp.value||'').trim();
-  if(!raw) return;
-  const arr = ids(raw);
-  if(arr.length===0){ setStatus('未识别到需要下架的编号'); inp.focus(); return; }
-  let data = load();
-  const before = data.length;
-  const set = new Set(arr.map(String));
-  data = data.filter(r => !set.has(String(r.编号)));
-  save(data);
-  inp.value='';
-  render(); setStatus(`已下架 ${before - data.length} 条，现有 ${data.length} 条`);
-  syncFromRemote();
-  inp.focus();
+document.getElementById('btnDel').addEventListener('click',()=>{
+  const raw=(inp.value||'').trim(); if(!raw) return;
+  const arr=ids(raw); if(arr.length===0){ setStatus('未识别到需要下架的编号'); inp.focus(); return; }
+  let data=load(); const before=data.length; const set=new Set(arr.map(String));
+  data=data.filter(r=>!set.has(String(r.编号)));
+  save(data); inp.value=''; render(); setStatus(`已下架 ${before-data.length} 条，现有 ${data.length} 条`); syncFromRemote(); inp.focus();
 });
 
-/* ====== 启动：首次同步 + 轮询 ====== */
-window.addEventListener('DOMContentLoaded', ()=>{
+/* 启动：首次同步 + 轮询 */
+window.addEventListener('DOMContentLoaded',()=>{
   syncFromRemote(true);
-  setInterval(syncFromRemote, 5000); // 近实时多人协同
+  setInterval(syncFromRemote,5000); // 近实时多人协同
 });
 </script>
 </body>
