@@ -240,40 +240,82 @@ go.addEventListener('click', ()=>enter());
 pwd.addEventListener('keydown', e=>{ if(e.key==="Enter") enter(); });
 window.addEventListener('DOMContentLoaded', ()=> pwd.focus());
 
-/* ===== JSONBin 适配器（rows 版） ===== */
-const JBIN_ID  = '68bba0ded0ea881f4073764e';  // 你的 Bin ID
-const JBIN_KEY = 'PASTE_YOUR_X_MASTER_KEY_HERE'; // ← 把 X-Master-Key 粘这里
+<script>
+/* ===== JSONBin 适配器：支持 Public 读 / 有 Key 写 ===== */
+/* 必填：你的 Bin ID；Key 可留空（只读） */
+const JBIN_ID   = '68bba0ded0ea881f4073764e';      // 你的 Bin ID
+const JBIN_KEY  = '';                               // ← 可留空；填 eyJ... 的 Access Key 就能写
 const JBIN_BASE = `https://api.jsonbin.io/v3/b/${JBIN_ID}`;
 
-async function jbReq(path='', method='GET', body=null){
-  const res = await fetch(`${JBIN_BASE}${path}`, {
-    method,
-    headers:{
-      'Content-Type':'application/json',
-      'X-Master-Key': JBIN_KEY
-    },
-    body: body ? JSON.stringify(body) : null
-  });
-  if(!res.ok) throw new Error(`JSONBin ${method} ${res.status}: ${await res.text()}`);
-  return res.json();
+/* 可选：你的 UI 里已有 setStatus；若没有，这里兜底成 console.log */
+const setStatus = (window.setStatus || (t => console.log(t||'')));
+
+function buildHeaders(needsAuth){
+  const h = { 'Content-Type': 'application/json' };
+  if (needsAuth && JBIN_KEY) h['X-Master-Key'] = JBIN_KEY;
+  return h;
 }
 
+async function jbReq(path = '', method = 'GET', body = null, needsAuth = false){
+  const res = await fetch(`${JBIN_BASE}${path}`, {
+    method,
+    headers: buildHeaders(needsAuth),
+    body: body ? JSON.stringify(body) : null
+  });
+  if(!res.ok){
+    const txt = await res.text().catch(()=> '');
+    throw new Error(`JSONBin ${method} ${res.status}: ${txt || 'unknown error'}`);
+  }
+  const ct = res.headers.get('content-type') || '';
+  return ct.includes('application/json') ? res.json() : null;
+}
+
+/* 读取：Public Bin 可不带 Key */
 async function storageGet(){
-  const { record } = await jbReq('', 'GET');
-  return record && Array.isArray(record.rows) ? record.rows : [];
+  try{
+    const { record } = await jbReq('', 'GET', null, /*needsAuth*/ !!JBIN_KEY);
+    // 同时兼容 {rows: []} 和直接 []
+    if (record && Array.isArray(record.rows)) return record.rows;
+    if (Array.isArray(record)) return record;
+    return [];
+  }catch(e){
+    // 如果 GET 401，多半是填了错误的 Key；再尝试无 Key 读（以防 Bin 已 Public）
+    if (/401/.test(String(e))) {
+      const { record } = await jbReq('', 'GET', null, /*needsAuth*/ false);
+      if (record && Array.isArray(record.rows)) return record.rows;
+      if (Array.isArray(record)) return record;
+      return [];
+    }
+    throw e;
+  }
 }
+
+/* 写入：无 Key 时给出友好提示 */
 async function storagePut(arr){
-  await jbReq('', 'PUT', { rows: arr }); // 存入 {rows:[...]}
+  if(!JBIN_KEY){
+    throw new Error('当前为 Public 只读模式：请在 JBIN_KEY 填入 Access Key 才能写入。');
+  }
+  // 统一写成 {rows:[...]}，若你用纯数组也可改为直接 arr
+  await jbReq('', 'PUT', { rows: arr }, /*needsAuth*/ true);
 }
+
 async function storageClear(){
-  await storagePut([]); // 清空
+  if(!JBIN_KEY){
+    throw new Error('当前为 Public 只读模式：请在 JBIN_KEY 填入 Access Key 才能清空。');
+  }
+  await storagePut([]); // 清空 rows
 }
+
 async function storageDeleteByNumbers(nums){
+  if(!JBIN_KEY){
+    throw new Error('当前为 Public 只读模式：请在 JBIN_KEY 填入 Access Key 才能删除。');
+  }
   const cur = await storageGet();
-  const set = new Set(nums.map(String));
+  const set = new Set((nums||[]).map(String));
   const next = cur.filter(r => !set.has(String(r.编号)));
   await storagePut(next);
 }
+</script>
 
 /* ========== 业务层（保留你的功能） ========== */
 const ALLOW_DUPLICATES = true; // 允许重复编号
@@ -440,3 +482,4 @@ document.getElementById('btnDel').addEventListener('click', async ()=>{
 </script>
 </body>
 </html>
+
