@@ -240,7 +240,6 @@ go.addEventListener('click', ()=>enter());
 pwd.addEventListener('keydown', e=>{ if(e.key==="Enter") enter(); });
 window.addEventListener('DOMContentLoaded', ()=> pwd.focus());
 
-<script>
 /* ===== JSONBin 适配器：支持 Public 读 / 有 Key 写 ===== */
 /* 必填：你的 Bin ID；Key 可留空（只读） */
 const JBIN_ID   = '68bba0ded0ea881f4073764e';      // 你的 Bin ID
@@ -315,7 +314,6 @@ async function storageDeleteByNumbers(nums){
   const next = cur.filter(r => !set.has(String(r.编号)));
   await storagePut(next);
 }
-</script>
 
 /* ========== 业务层（保留你的功能） ========== */
 const ALLOW_DUPLICATES = true; // 允许重复编号
@@ -482,4 +480,5 @@ document.getElementById('btnDel').addEventListener('click', async ()=>{
 </script>
 </body>
 </html>
+
 
